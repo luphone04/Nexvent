@@ -61,6 +61,7 @@ model User {
   interests     String[] // Array of event categories they're interested in
   role          UserRole @default(ATTENDEE)
   avatarUrl     String?  @map("avatar_url")
+  privacy       Json?    // Privacy settings as JSON
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
