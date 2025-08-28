@@ -15,16 +15,16 @@ A comprehensive event management platform built with Next.js 14, PostgreSQL, and
 - ✅ Install core dependencies (Tailwind CSS, shadcn/ui)
 - ✅ Configure environment variables (.env.local)
 
-### Day 2: Database Setup
-- Set up PostgreSQL database (local or cloud)
-- Install and configure Prisma ORM
-- Design database schema with three main entities:
+### Day 2: Database Setup ✅ DONE
+- ✅ Set up PostgreSQL database (local or cloud)
+- ✅ Install and configure Prisma ORM
+- ✅ Design database schema with three main entities:
   - Events table
   - Attendees/Users table  
   - Registrations table (junction with extra fields)
-- Create Prisma migrations
-- Set up database relationships and constraints
-- Add database indexes for performance
+- ✅ Create Prisma migrations
+- ✅ Set up database relationships and constraints
+- ✅ Add database indexes for performance
 
 ### Day 3: Authentication System
 - Install and configure NextAuth.js
