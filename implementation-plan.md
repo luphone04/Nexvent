@@ -57,14 +57,14 @@ A comprehensive event management platform built with Next.js 14, PostgreSQL, and
 - ✅ Add organization filtering
 - ✅ Implement profile privacy settings
 
-### Day 6: Registration API Endpoints
-- Create `/api/registrations` route handlers
-- Implement registration creation with capacity checking
-- Add waitlist logic when events are full
-- Generate unique check-in codes
-- Implement registration cancellation with rules
-- Create event-specific registration endpoints
-- Add attendee-specific registration history endpoint
+### Day 6: Registration API Endpoints ✅ DONE
+- ✅ Create `/api/registrations` route handlers
+- ✅ Implement registration creation with capacity checking
+- ✅ Add waitlist logic when events are full
+- ✅ Generate unique check-in codes
+- ✅ Implement registration cancellation with rules
+- ✅ Create event-specific registration endpoints
+- ✅ Add attendee-specific registration history endpoint
 
 ### Day 7: Advanced API Features
 - Implement QR code generation endpoint
