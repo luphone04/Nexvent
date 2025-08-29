@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
 // Simple in-memory rate limiting (for production, use Redis)
 const requestCounts = new Map<string, { count: number; resetTime: number }>()
@@ -13,13 +13,11 @@ interface RateLimitConfig {
 
 export function createRateLimit(config: RateLimitConfig) {
   return async (request: NextRequest) => {
-    const ip = request.ip || 
-               request.headers.get('x-forwarded-for')?.split(',')[0] || 
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 
                request.headers.get('x-real-ip') || 
                'unknown'
 
     const now = Date.now()
-    const windowStart = now - config.windowMs
     
     // Get current count for this IP
     const currentData = requestCounts.get(ip)

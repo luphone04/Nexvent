@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:api": "node scripts/test-api.js",
+    "test:api:full": "node tests/api-test-suite.js"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
