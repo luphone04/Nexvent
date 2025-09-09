@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
 import { registrationQuerySchema } from "@/lib/validations/registration"
@@ -22,8 +22,8 @@ export async function GET(
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (currentUser as any).role as UserRole
-    const userId = (currentUser as any).id
+    const userRole = currentUser.role as UserRole
+    const userId = currentUser.id
 
     // Check if attendee exists
     const attendee = await prisma.user.findUnique({
@@ -48,7 +48,7 @@ export async function GET(
     }
 
     // Build where clause
-    const where: any = { userId: attendeeId }
+    const where: Record<string, unknown> = { userId: attendeeId }
     
     if (query.status) {
       where.status = query.status

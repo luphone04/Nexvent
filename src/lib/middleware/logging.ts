@@ -41,7 +41,7 @@ export class APILogger {
   private static logs: RequestLog[] = []
   private static maxLogs = 1000 // Keep last 1000 logs in memory
   
-  static logRequest(request: NextRequest, currentUser?: any): RequestLog {
+  static logRequest(request: NextRequest, currentUser?: unknown): RequestLog {
     const requestId = generateRequestId()
     const timestamp = new Date().toISOString()
     
@@ -160,8 +160,8 @@ export class APILogger {
 }
 
 // Middleware wrapper for API routes
-export function withLogging(handler: Function) {
-  return async (request: NextRequest, ...args: any[]) => {
+export function withLogging(handler: (request: NextRequest, ...args: unknown[]) => Promise<Response>) {
+  return async (request: NextRequest, ...args: unknown[]) => {
     const startTime = Date.now()
     let requestLog: RequestLog | null = null
     

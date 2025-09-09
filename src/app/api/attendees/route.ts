@@ -1,17 +1,13 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
-import { 
-  attendeeQuerySchema,
-  type AttendeeQuery 
-} from "@/lib/validations/attendee"
+import { attendeeQuerySchema } from "@/lib/validations/attendee"
 import { 
   successResponse, 
-  errorResponse, 
   handleError,
   createPagination 
 } from "@/lib/utils/api"
-import { UserRole, EventCategory } from "@prisma/client"
+import { UserRole } from "@prisma/client"
 
 // GET /api/attendees - List attendees with filtering and search
 export async function GET(request: NextRequest) {
@@ -23,7 +19,7 @@ export async function GET(request: NextRequest) {
     const currentUser = await getCurrentUser()
 
     // Build where clause for filtering
-    const where: any = {}
+    const where: Record<string, unknown> = {}
     
     if (query.role) {
       where.role = query.role
@@ -67,7 +63,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Privacy filtering - only show users who allow search
-    if (!query.includePrivate || !currentUser || (currentUser as any).role !== UserRole.ADMIN) {
+    if (!query.includePrivate || !currentUser || currentUser.role !== UserRole.ADMIN) {
       // For now, we'll implement privacy in the response filtering
       // Later we can add a privacy JSON field query
     }
@@ -121,7 +117,7 @@ export async function GET(request: NextRequest) {
 
     // Apply privacy filtering to response
     const filteredAttendees = attendees.map(attendee => {
-      const privacy = attendee.privacy as any || {
+      const privacy = attendee.privacy as unknown || {
         showEmail: false,
         showPhone: false,
         showOrganization: true,
@@ -130,8 +126,8 @@ export async function GET(request: NextRequest) {
         allowSearch: true
       }
 
-      const isOwnProfile = currentUser && (currentUser as any).id === attendee.id
-      const isAdmin = currentUser && (currentUser as any).role === UserRole.ADMIN
+      const isOwnProfile = currentUser && currentUser.id === attendee.id
+      const isAdmin = currentUser && currentUser.role === UserRole.ADMIN
 
       // Always show full profile to owner and admin
       if (isOwnProfile || isAdmin) {

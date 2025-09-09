@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
 import { z } from "zod"
-import { successResponse, errorResponse, handleError } from "@/lib/utils/api"
+import { successResponse, handleError } from "@/lib/utils/api"
 import { UserRole } from "@prisma/client"
 
 const searchSchema = z.object({
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     ]
 
     // Add role filter based on search type
-    const where: any = {
+    const where: Record<string, unknown> = {
       OR: searchConditions
     }
 
@@ -92,21 +92,21 @@ export async function GET(request: NextRequest) {
     // Apply privacy filtering
     const filteredResults = results
       .filter(user => {
-        const privacy = user.privacy as any || { allowSearch: true }
+        const privacy = user.privacy as unknown || { allowSearch: true }
         // Always show if it's the current user or if user is admin
-        const isCurrentUser = currentUser && (currentUser as any).id === user.id
-        const isAdmin = currentUser && (currentUser as any).role === UserRole.ADMIN
+        const isCurrentUser = currentUser && currentUser.id === user.id
+        const isAdmin = currentUser && currentUser.role === UserRole.ADMIN
         
         return isCurrentUser || isAdmin || privacy.allowSearch
       })
       .map(user => {
-        const privacy = user.privacy as any || {
+        const privacy = user.privacy as unknown || {
           showEmail: false,
           showOrganization: true
         }
 
-        const isCurrentUser = currentUser && (currentUser as any).id === user.id
-        const isAdmin = currentUser && (currentUser as any).role === UserRole.ADMIN
+        const isCurrentUser = currentUser && currentUser.id === user.id
+        const isAdmin = currentUser && currentUser.role === UserRole.ADMIN
 
         // Show full profile to current user and admin
         if (isCurrentUser || isAdmin) {

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
 import { z } from "zod"
@@ -25,15 +25,6 @@ const batchUserSchema = z.object({
   reason: z.string().max(500, "Reason too long").optional(),
 })
 
-// Generate unique check-in code
-function generateCheckInCode(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-  let result = ''
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return result
-}
 
 // POST /api/admin/batch - Perform batch operations (admin only)
 export async function POST(request: NextRequest) {
@@ -44,8 +35,8 @@ export async function POST(request: NextRequest) {
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (currentUser as any).role as UserRole
-    const userId = (currentUser as any).id
+    const userRole = currentUser.role as UserRole
+    const userId = currentUser.id
 
     // Only admins can perform batch operations
     if (userRole !== UserRole.ADMIN) {
@@ -71,7 +62,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Handle batch registration operations
-async function handleBatchRegistrations(body: any, adminId: string) {
+async function handleBatchRegistrations(body: unknown, adminId: string) {
   const { action, registrationIds, reason } = batchRegistrationSchema.parse(body)
 
   // Get all registrations
@@ -105,7 +96,7 @@ async function handleBatchRegistrations(body: any, adminId: string) {
     return errorResponse("Some registrations not found", 400, "REGISTRATIONS_NOT_FOUND")
   }
 
-  let results: any[] = []
+  let results: unknown[] = []
 
   switch (action) {
     case "cancel":
@@ -173,13 +164,13 @@ async function handleBatchRegistrations(body: any, adminId: string) {
   return successResponse({
     action,
     processed: results.length,
-    results: results.map(r => ({ id: r.id, status: r.status })),
+    results: results.map(r => ({ id: (r as { id: string }).id, status: (r as { status: string }).status })),
     reason
   }, `Batch ${action} completed successfully`)
 }
 
 // Handle batch event operations
-async function handleBatchEvents(body: any, adminId: string) {
+async function handleBatchEvents(body: unknown, adminId: string) {
   const { action, eventIds, reason } = batchEventSchema.parse(body)
 
   // Get all events
@@ -202,7 +193,7 @@ async function handleBatchEvents(body: any, adminId: string) {
     return errorResponse("Some events not found", 400, "EVENTS_NOT_FOUND")
   }
 
-  let results: any[] = []
+  let results: unknown[] = []
 
   switch (action) {
     case "publish":
@@ -263,13 +254,13 @@ async function handleBatchEvents(body: any, adminId: string) {
   return successResponse({
     action,
     processed: results.length,
-    results: results.map(r => ({ id: r.id, status: r.status })),
+    results: results.map(r => ({ id: (r as { id: string }).id, status: (r as { status: string }).status })),
     reason
   }, `Batch ${action} completed successfully`)
 }
 
 // Handle batch user operations
-async function handleBatchUsers(body: any, adminId: string) {
+async function handleBatchUsers(body: unknown, adminId: string) {
   const { action, userIds, newRole, reason } = batchUserSchema.parse(body)
 
   // Get all users
@@ -293,7 +284,7 @@ async function handleBatchUsers(body: any, adminId: string) {
     return errorResponse("Cannot change your own admin role", 400, "CANNOT_MODIFY_SELF")
   }
 
-  let results: any[] = []
+  let results: unknown[] = []
 
   switch (action) {
     case "promote":
@@ -340,7 +331,7 @@ async function handleBatchUsers(body: any, adminId: string) {
   return successResponse({
     action,
     processed: results.length,
-    results: results.map(r => ({ id: r.id, role: r.role })),
+    results: results.map(r => ({ id: (r as { id: string }).id, role: (r as { role: UserRole }).role })),
     reason
   }, `Batch ${action} completed successfully`)
 }

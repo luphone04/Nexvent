@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
 import { z } from "zod"
@@ -19,14 +19,14 @@ export async function POST(request: NextRequest) {
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (currentUser as any).role as UserRole
-    const userId = (currentUser as any).id
+    const userRole = currentUser.role as UserRole
+    const userId = currentUser.id
 
     const body = await request.json()
     const { code, eventId } = validateCheckInSchema.parse(body)
 
     // Build where clause
-    const where: any = {
+    const where: Record<string, unknown> = {
       checkInCode: code.toUpperCase()
     }
 

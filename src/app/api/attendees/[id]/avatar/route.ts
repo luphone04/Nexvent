@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
 import { uploadProfileImage } from "@/lib/utils/upload"
@@ -18,8 +18,8 @@ export async function POST(
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (currentUser as any).role as UserRole
-    const userId = (currentUser as any).id
+    const userRole = currentUser.role as UserRole
+    const userId = currentUser.id
 
     // Only allow updating own avatar or admin
     if (userId !== id && userRole !== UserRole.ADMIN) {
@@ -80,8 +80,8 @@ export async function DELETE(
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (currentUser as any).role as UserRole
-    const userId = (currentUser as any).id
+    const userRole = currentUser.role as UserRole
+    const userId = currentUser.id
 
     // Only allow removing own avatar or admin
     if (userId !== id && userRole !== UserRole.ADMIN) {
@@ -89,14 +89,10 @@ export async function DELETE(
     }
 
     // Update user's avatar URL to null
-    const updatedUser = await prisma.user.update({
+    await prisma.user.update({
       where: { id },
       data: {
         avatarUrl: null
-      },
-      select: {
-        id: true,
-        avatarUrl: true
       }
     })
 

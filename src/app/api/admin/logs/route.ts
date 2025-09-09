@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { getCurrentUser } from "@/lib/auth"
 import { z } from "zod"
 import { successResponse, errorResponse, handleError } from "@/lib/utils/api"
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (currentUser as any).role as UserRole
+    const userRole = currentUser.role as UserRole
 
     if (userRole !== UserRole.ADMIN) {
       return errorResponse("Admin access required", 403, "FORBIDDEN")
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
 }
 
 // DELETE /api/admin/logs - Clear API logs (admin only)
-export async function DELETE(request: NextRequest) {
+export async function DELETE(_request: NextRequest) {
   try {
     const currentUser = await getCurrentUser()
     
@@ -66,7 +66,7 @@ export async function DELETE(request: NextRequest) {
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (currentUser as any).role as UserRole
+    const userRole = currentUser.role as UserRole
 
     if (userRole !== UserRole.ADMIN) {
       return errorResponse("Admin access required", 403, "FORBIDDEN")

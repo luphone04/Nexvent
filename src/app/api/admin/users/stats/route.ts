@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getUserStats } from "@/lib/auth/setup"
 import { requireAdmin } from "@/lib/auth"
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Only allow admins to view user stats
     await requireAdmin()
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       success: true,
       data: stats
     })
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { 
         success: false, 

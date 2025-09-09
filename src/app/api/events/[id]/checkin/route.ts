@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
 import { checkInSchema } from "@/lib/validations/registration"
@@ -18,8 +18,8 @@ export async function POST(
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (currentUser as any).role as UserRole
-    const userId = (currentUser as any).id
+    const userRole = currentUser.role as UserRole
+    const userId = currentUser.id
 
     // Check if event exists
     const event = await prisma.event.findUnique({
@@ -128,8 +128,8 @@ export async function GET(
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (currentUser as any).role as UserRole
-    const userId = (currentUser as any).id
+    const userRole = currentUser.role as UserRole
+    const userId = currentUser.id
 
     // Check if event exists and user has permission
     const event = await prisma.event.findUnique({

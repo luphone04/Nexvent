@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db"
 import { UserRole } from "@prisma/client"
 
 export const authConfig: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as any,
+  adapter: PrismaAdapter(prisma) as any, // Required for Next-Auth adapter compatibility
   session: {
     strategy: "jwt",
   },
@@ -110,15 +110,15 @@ export const authConfig: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as any).role
+        token.role = user.role
         token.id = user.id
       }
       return token
     },
     async session({ session, token }) {
       if (token && session.user) {
-        (session.user as any).id = token.id as string
-        (session.user as any).role = token.role
+        session.user.id = token.id as string
+        session.user.role = token.role as string
       }
       return session
     }

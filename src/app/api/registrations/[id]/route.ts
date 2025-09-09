@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
-import { updateRegistrationSchema, type UpdateRegistrationInput } from "@/lib/validations/registration"
+import { updateRegistrationSchema } from "@/lib/validations/registration"
 import { successResponse, errorResponse, handleError } from "@/lib/utils/api"
 import { UserRole, RegistrationStatus } from "@prisma/client"
 
@@ -18,8 +18,8 @@ export async function GET(
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (currentUser as any).role as UserRole
-    const userId = (currentUser as any).id
+    const userRole = currentUser.role as UserRole
+    const userId = currentUser.id
 
     const registration = await prisma.registration.findUnique({
       where: { id },
@@ -99,8 +99,8 @@ export async function PUT(
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (currentUser as any).role as UserRole
-    const userId = (currentUser as any).id
+    const userRole = currentUser.role as UserRole
+    const userId = currentUser.id
 
     // Get existing registration
     const existingRegistration = await prisma.registration.findUnique({
@@ -201,8 +201,8 @@ export async function DELETE(
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (currentUser as any).role as UserRole
-    const userId = (currentUser as any).id
+    const userRole = currentUser.role as UserRole
+    const userId = currentUser.id
 
     // Get registration with event details
     const registration = await prisma.registration.findUnique({

@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
-import { updateAttendeeSchema, type UpdateAttendeeInput } from "@/lib/validations/attendee"
+import { updateAttendeeSchema } from "@/lib/validations/attendee"
 import { successResponse, errorResponse, handleError } from "@/lib/utils/api"
 import { UserRole } from "@prisma/client"
 
@@ -101,7 +101,7 @@ export async function GET(
       return errorResponse("Attendee not found", 404, "NOT_FOUND")
     }
 
-    const privacy = attendee.privacy as any || {
+    const privacy = attendee.privacy as unknown || {
       showEmail: false,
       showPhone: false,
       showOrganization: true,
@@ -110,8 +110,8 @@ export async function GET(
       allowSearch: true
     }
 
-    const isOwnProfile = currentUser && (currentUser as any).id === attendee.id
-    const isAdmin = currentUser && (currentUser as any).role === UserRole.ADMIN
+    const isOwnProfile = currentUser && currentUser.id === attendee.id
+    const isAdmin = currentUser && currentUser.role === UserRole.ADMIN
 
     // Always show full profile to owner and admin
     if (isOwnProfile || isAdmin) {
@@ -156,8 +156,8 @@ export async function PUT(
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (currentUser as any).role as UserRole
-    const userId = (currentUser as any).id
+    const userRole = currentUser.role as UserRole
+    const userId = currentUser.id
 
     // Check if user can update this profile
     const isOwnProfile = userId === id
@@ -180,7 +180,7 @@ export async function PUT(
     const validatedData = updateAttendeeSchema.parse(body)
 
     // Prepare update data
-    const updateData: any = { ...validatedData }
+    const updateData: Record<string, unknown> = { ...validatedData }
 
     const updatedAttendee = await prisma.user.update({
       where: { id },

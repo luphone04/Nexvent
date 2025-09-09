@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
 import { profilePrivacySchema, type ProfilePrivacy } from "@/lib/validations/attendee"
@@ -18,8 +18,8 @@ export async function GET(
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (currentUser as any).role as UserRole
-    const userId = (currentUser as any).id
+    const userRole = currentUser.role as UserRole
+    const userId = currentUser.id
 
     // Only allow viewing own privacy settings or admin
     if (userId !== id && userRole !== UserRole.ADMIN) {
@@ -67,7 +67,7 @@ export async function PUT(
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userId = (currentUser as any).id
+    const userId = currentUser.id
 
     // Only allow updating own privacy settings
     if (userId !== id) {

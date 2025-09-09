@@ -1,8 +1,6 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/db"
-import { getCurrentUser } from "@/lib/auth"
 import { successResponse, errorResponse, handleError } from "@/lib/utils/api"
-import { UserRole } from "@prisma/client"
 import QRCode from 'qrcode'
 
 // GET /api/events/[id]/qrcode - Generate QR code for event (for registration or info)
@@ -53,7 +51,7 @@ export async function GET(
       return errorResponse("Event not found", 404, "NOT_FOUND")
     }
 
-    let qrData: any = {}
+    let qrData: Record<string, unknown> = {}
     
     if (type === 'registration') {
       // QR code for registration

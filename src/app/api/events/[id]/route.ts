@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
-import { updateEventSchema, type UpdateEventInput } from "@/lib/validations/event"
+import { updateEventSchema } from "@/lib/validations/event"
 import { successResponse, errorResponse, handleError } from "@/lib/utils/api"
 import { EventStatus, UserRole } from "@prisma/client"
 
@@ -57,8 +57,8 @@ export async function GET(
 
     // Check if user can view this event
     const user = await getCurrentUser()
-    const userRole = user ? (user as any).role as UserRole : null
-    const isOrganizer = user && (user as any).id === event.organizerId
+    const userRole = user ? user.role as UserRole : null
+    const isOrganizer = user && user.id === event.organizerId
     const isAdmin = userRole === "ADMIN"
 
     // Non-published events can only be viewed by organizer/admin
@@ -91,8 +91,8 @@ export async function PUT(
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (user as any).role as UserRole
-    const userId = (user as any).id
+    const userRole = user.role as UserRole
+    const userId = user.id
 
     // Get the event to check ownership
     const existingEvent = await prisma.event.findUnique({
@@ -115,7 +115,7 @@ export async function PUT(
     const validatedData = updateEventSchema.parse(body)
 
     // Prepare update data
-    const updateData: any = { ...validatedData }
+    const updateData: Record<string, unknown> = { ...validatedData }
     
     if (validatedData.eventDate) {
       updateData.eventDate = new Date(validatedData.eventDate)
@@ -167,8 +167,8 @@ export async function DELETE(
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (user as any).role as UserRole
-    const userId = (user as any).id
+    const userRole = user.role as UserRole
+    const userId = user.id
 
     // Get the event to check ownership
     const existingEvent = await prisma.event.findUnique({

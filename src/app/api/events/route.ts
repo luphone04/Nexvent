@@ -1,11 +1,9 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
 import { 
   createEventSchema, 
-  eventQuerySchema,
-  type CreateEventInput,
-  type EventQuery 
+  eventQuerySchema
 } from "@/lib/validations/event"
 import { 
   successResponse, 
@@ -13,7 +11,7 @@ import {
   handleError,
   createPagination 
 } from "@/lib/utils/api"
-import { EventCategory, EventStatus, UserRole } from "@prisma/client"
+import { EventStatus, UserRole } from "@prisma/client"
 
 // GET /api/events - List events with filtering and pagination
 export async function GET(request: NextRequest) {
@@ -24,7 +22,7 @@ export async function GET(request: NextRequest) {
     const query = eventQuerySchema.parse(queryObj)
 
     // Build where clause for filtering
-    const where: any = {}
+    const where: Record<string, unknown> = {}
     
     if (query.category) {
       where.category = query.category
@@ -66,7 +64,7 @@ export async function GET(request: NextRequest) {
     } else {
       // By default, only show published events to non-organizers
       const user = await getCurrentUser()
-      if (!user || !["ORGANIZER", "ADMIN"].includes((user as any).role)) {
+      if (!user || !["ORGANIZER", "ADMIN"].includes(user.role as string)) {
         where.status = EventStatus.PUBLISHED
       }
     }
@@ -145,7 +143,7 @@ export async function POST(request: NextRequest) {
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (user as any).role as UserRole
+    const userRole = user.role as UserRole
     if (!["ORGANIZER", "ADMIN"].includes(userRole)) {
       return errorResponse("Only organizers can create events", 403, "FORBIDDEN")
     }
@@ -157,7 +155,7 @@ export async function POST(request: NextRequest) {
     const eventData = {
       ...validatedData,
       eventDate: new Date(validatedData.eventDate),
-      organizerId: (user as any).id,
+      organizerId: user.id,
     }
 
     const event = await prisma.event.create({

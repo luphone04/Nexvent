@@ -23,7 +23,7 @@ export async function requireRole(allowedRoles: UserRole[]) {
     redirect("/auth/signin")
   }
 
-  const userRole = (session.user as any).role as UserRole
+  const userRole = session.user.role as UserRole
   
   if (!allowedRoles.includes(userRole)) {
     redirect("/unauthorized")

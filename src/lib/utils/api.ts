@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server"
 import { ZodError } from "zod"
+import { sanitizeObject, commonSanitizers } from "./sanitize"
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   error?: string
@@ -77,4 +78,45 @@ export function createPagination(
     limit,
     totalPages,
   }
+}
+
+// Sanitize request body for common fields
+export function sanitizeRequestBody<T extends Record<string, unknown>>(body: T): T {
+  const sanitizers = {
+    name: commonSanitizers.text,
+    title: commonSanitizers.text,
+    description: commonSanitizers.html,
+    email: commonSanitizers.email,
+    phone: commonSanitizers.phone,
+    organization: commonSanitizers.text,
+    location: commonSanitizers.text,
+    bio: commonSanitizers.html,
+    notes: commonSanitizers.html,
+    specialRequirements: commonSanitizers.html,
+    imageUrl: commonSanitizers.url,
+    avatarUrl: commonSanitizers.url
+  } as Partial<Record<keyof T, (value: unknown) => unknown>>
+
+  return sanitizeObject(body, sanitizers)
+}
+
+// Sanitize search query parameters
+export function sanitizeSearchParams(params: URLSearchParams): Record<string, string> {
+  const sanitized: Record<string, string> = {}
+  
+  for (const [key, value] of params.entries()) {
+    switch (key) {
+      case 'search':
+      case 'q':
+        sanitized[key] = commonSanitizers.search(value)
+        break
+      case 'email':
+        sanitized[key] = commonSanitizers.email(value)
+        break
+      default:
+        sanitized[key] = commonSanitizers.text(value)
+    }
+  }
+  
+  return sanitized
 }

@@ -30,11 +30,11 @@ export function Navbar() {
                   Hello, {session.user?.name}
                 </span>
                 <span className="text-xs bg-gray-100 px-2 py-1 rounded">
-                  {(session.user as any)?.role}
+                  {session.user?.role as string}
                 </span>
                 
                 {/* Role-based navigation */}
-                {["ORGANIZER", "ADMIN"].includes((session.user as any)?.role) && (
+                {["ORGANIZER", "ADMIN"].includes(session.user?.role as string) && (
                   <Button variant="outline" size="sm" asChild>
                     <Link href="/dashboard">Dashboard</Link>
                   </Button>

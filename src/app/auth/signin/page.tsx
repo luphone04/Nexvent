@@ -33,7 +33,7 @@ export default function SignInPage() {
       } else if (result?.ok) {
         // Get the updated session to check user role
         const session = await getSession()
-        const userRole = (session?.user as any)?.role
+        const userRole = session?.user?.role as string
         
         // Redirect based on role
         if (userRole === "ADMIN" || userRole === "ORGANIZER") {
@@ -42,7 +42,7 @@ export default function SignInPage() {
           router.push("/events")
         }
       }
-    } catch (error) {
+    } catch (_error) {
       setError("An unexpected error occurred")
     } finally {
       setIsLoading(false)

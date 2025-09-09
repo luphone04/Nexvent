@@ -1,11 +1,9 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
 import { 
   createRegistrationSchema, 
-  registrationQuerySchema,
-  type CreateRegistrationInput,
-  type RegistrationQuery
+  registrationQuerySchema
 } from "@/lib/validations/registration"
 import { 
   successResponse, 
@@ -38,11 +36,11 @@ export async function GET(request: NextRequest) {
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (currentUser as any).role as UserRole
-    const userId = (currentUser as any).id
+    const userRole = currentUser.role as UserRole
+    const userId = currentUser.id
 
     // Build where clause for filtering
-    const where: any = {}
+    const where: Record<string, unknown> = {}
     
     if (query.status) {
       where.status = query.status
@@ -164,7 +162,7 @@ export async function POST(request: NextRequest) {
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userId = (currentUser as any).id
+    const userId = currentUser.id
     const body = await request.json()
     const validatedData = createRegistrationSchema.parse(body)
 

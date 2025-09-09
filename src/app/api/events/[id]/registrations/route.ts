@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
 import { registrationQuerySchema, bulkRegistrationSchema } from "@/lib/validations/registration"
@@ -32,8 +32,8 @@ export async function GET(
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (currentUser as any).role as UserRole
-    const userId = (currentUser as any).id
+    const userRole = currentUser.role as UserRole
+    const userId = currentUser.id
 
     // Check if event exists and user has permission to view registrations
     const event = await prisma.event.findUnique({
@@ -56,7 +56,7 @@ export async function GET(
     }
 
     // Build where clause
-    const where: any = { eventId }
+    const where: Record<string, unknown> = { eventId }
     
     if (query.status) {
       where.status = query.status
@@ -145,8 +145,8 @@ export async function POST(
       return errorResponse("Authentication required", 401, "UNAUTHORIZED")
     }
 
-    const userRole = (currentUser as any).role as UserRole
-    const userId = (currentUser as any).id
+    const userRole = currentUser.role as UserRole
+    const userId = currentUser.id
 
     // Check if event exists and user has permission
     const event = await prisma.event.findUnique({
@@ -220,7 +220,7 @@ export async function POST(
     const currentRegistrations = event._count.registrations
     const availableSpots = event.capacity ? Math.max(0, event.capacity - currentRegistrations) : validatedData.userIds.length
     
-    const toRegister = validatedData.userIds.slice(0, availableSpots)
+    const _toRegister = validatedData.userIds.slice(0, availableSpots)
     const toWaitlist = validatedData.userIds.slice(availableSpots)
 
     if (toWaitlist.length > 0 && !event.allowWaitlist) {

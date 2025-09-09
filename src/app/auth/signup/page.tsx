@@ -49,7 +49,7 @@ export default function SignUpPage() {
       } else if (result?.ok) {
         router.push("/events")
       }
-    } catch (error) {
+    } catch (_error) {
       setError("An unexpected error occurred")
     } finally {
       setIsLoading(false)
