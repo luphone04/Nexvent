@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db"
 import { UserRole } from "@prisma/client"
 
 export const authConfig: NextAuthOptions = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   adapter: PrismaAdapter(prisma) as any, // Required for Next-Auth adapter compatibility
   session: {
     strategy: "jwt",

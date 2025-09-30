@@ -48,7 +48,7 @@ export async function GET(
     }
 
     // Build where clause
-    const where: Record<string, unknown> = { userId: attendeeId }
+    const where: Record<string, unknown> = { attendeeId: attendeeId }
     
     if (query.status) {
       where.status = query.status
@@ -101,7 +101,8 @@ export async function GET(
           status: true,
           registrationDate: true,
           checkInCode: isOwnProfile || userRole === UserRole.ADMIN ? true : false, // Only show check-in code to owner/admin
-          notes: true,
+          checkInTime: true,
+          specialRequirements: true,
           waitlistPosition: true,
           createdAt: true,
           updatedAt: true,
@@ -110,8 +111,10 @@ export async function GET(
               id: true,
               title: true,
               eventDate: true,
+              eventTime: true,
               location: true,
               category: true,
+              ticketPrice: true,
               status: true,
               capacity: true,
               organizerId: true,
@@ -154,7 +157,7 @@ export async function GET(
     // Add summary statistics for the attendee
     const summary = await prisma.registration.groupBy({
       by: ['status'],
-      where: { userId: attendeeId },
+      where: { attendeeId: attendeeId },
       _count: {
         status: true
       }

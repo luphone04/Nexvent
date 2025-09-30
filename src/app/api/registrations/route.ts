@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
           status: true,
           registrationDate: true,
           checkInCode: true,
-          notes: true,
+          specialRequirements: true,
           waitlistPosition: true,
           createdAt: true,
           updatedAt: true,
@@ -174,7 +174,6 @@ export async function POST(request: NextRequest) {
         title: true,
         status: true,
         eventDate: true,
-        registrationDeadline: true,
         capacity: true,
         organizerId: true,
         _count: {
@@ -199,11 +198,6 @@ export async function POST(request: NextRequest) {
       return errorResponse("Event is not available for registration", 400, "EVENT_NOT_AVAILABLE")
     }
 
-    // Check if registration is still open
-    if (event.registrationDeadline && new Date() > new Date(event.registrationDeadline)) {
-      return errorResponse("Registration deadline has passed", 400, "REGISTRATION_CLOSED")
-    }
-
     // Check if event has already happened
     if (new Date() > new Date(event.eventDate)) {
       return errorResponse("Cannot register for past events", 400, "EVENT_EXPIRED")
@@ -212,9 +206,9 @@ export async function POST(request: NextRequest) {
     // Check if user is already registered
     const existingRegistration = await prisma.registration.findUnique({
       where: {
-        attendeeId_eventId: {
-          attendeeId: userId,
-          eventId: validatedData.eventId
+        eventId_attendeeId: {
+          eventId: validatedData.eventId,
+          attendeeId: userId
         }
       }
     })
@@ -251,7 +245,7 @@ export async function POST(request: NextRequest) {
         eventId: validatedData.eventId,
         status: registrationStatus,
         checkInCode: generateCheckInCode(),
-        notes: validatedData.notes,
+        specialRequirements: validatedData.specialRequirements,
         waitlistPosition,
         registrationDate: new Date()
       },
@@ -260,7 +254,8 @@ export async function POST(request: NextRequest) {
         status: true,
         registrationDate: true,
         checkInCode: true,
-        notes: true,
+        specialRequirements: true,
+        checkInTime: true,
         waitlistPosition: true,
         createdAt: true,
         updatedAt: true,
@@ -277,6 +272,7 @@ export async function POST(request: NextRequest) {
             id: true,
             title: true,
             eventDate: true,
+            eventTime: true,
             location: true,
             category: true,
             status: true

@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:api": "node scripts/test-api.js",
-    "test:api:full": "node tests/api-test-suite.js"
+    "test:api:full": "node tests/api-test-suite.js",
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
@@ -41,6 +42,8 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.2",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
     "tw-animate-css": "^1.3.7",
     "typescript": "^5"
   }

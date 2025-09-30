@@ -15,7 +15,21 @@ export async function GET(
 
     const event = await prisma.event.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        eventDate: true,
+        eventTime: true,
+        location: true,
+        capacity: true,
+        category: true,
+        ticketPrice: true,
+        imageUrl: true,
+        status: true,
+        organizerId: true,
+        createdAt: true,
+        updatedAt: true,
         organizer: {
           select: {
             id: true,

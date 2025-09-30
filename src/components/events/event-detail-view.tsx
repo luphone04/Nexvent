@@ -41,7 +41,6 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
   const [event, setEvent] = useState<Event | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [registering, setRegistering] = useState(false)
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -80,42 +79,41 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
     return `$${numPrice.toFixed(2)}`
   }
 
-  const handleRegister = async () => {
+  const handleRegister = () => {
     if (!session) {
-      // Redirect to login
-      window.location.href = '/auth/signin'
+      // Redirect to login with callback to registration page
+      window.location.href = `/auth/signin?callbackUrl=/events/${eventId}/register`
       return
     }
 
-    setRegistering(true)
+    // Redirect to registration form
+    window.location.href = `/events/${eventId}/register`
+  }
+
+  const handleStatusToggle = async () => {
+    if (!event) return
+
+    const newStatus = event.status === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED'
+    const confirmMsg = newStatus === 'PUBLISHED'
+      ? 'Publish this event? It will become visible to all users.'
+      : 'Unpublish this event? It will no longer be visible to users.'
+
+    if (!confirm(confirmMsg)) return
+
     try {
-      const response = await fetch('/api/registrations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          eventId: event?.id,
-        }),
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Registration failed')
+      if (response.ok) {
+        window.location.reload()
+      } else {
+        alert('Failed to update event status')
       }
-
-      // Refresh event data to show updated registration count
-      const eventResponse = await fetch(`/api/events/${eventId}`)
-      if (eventResponse.ok) {
-        const eventData = await eventResponse.json()
-        setEvent(eventData.data)
-      }
-
-      alert('Successfully registered for the event!')
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Registration failed')
-    } finally {
-      setRegistering(false)
+    } catch {
+      alert('Failed to update event status')
     }
   }
 
@@ -238,15 +236,14 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
               </div>
 
               {/* Registration Section */}
-              <div className="flex-shrink-0 md:w-64">
+              <div className="flex-shrink-0 md:w-64 space-y-3">
                 {canRegister ? (
                   <Button
                     onClick={handleRegister}
-                    disabled={registering}
                     className="w-full text-lg py-3"
                     size="lg"
                   >
-                    {registering ? 'Registering...' : 'Register Now'}
+                    Register Now
                   </Button>
                 ) : eventPassed ? (
                   <div className="text-center p-4 bg-gray-100 rounded-lg">
@@ -263,11 +260,29 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
                 )}
 
                 {!session && canRegister && (
-                  <p className="text-sm text-gray-600 mt-2 text-center">
+                  <p className="text-sm text-gray-600 text-center">
                     <Link href="/auth/signin" className="text-blue-600 hover:underline">
                       Sign in
                     </Link> to register
                   </p>
+                )}
+
+                {/* Organizer Actions */}
+                {session?.user?.id === event.organizer.id && (
+                  <div className="space-y-2">
+                    <Button
+                      onClick={handleStatusToggle}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      {event.status === 'PUBLISHED' ? 'Unpublish Event' : 'Publish Event'}
+                    </Button>
+                    <Link href={`/events/${event.id}/edit`} className="block">
+                      <Button variant="outline" className="w-full">
+                        Edit Event
+                      </Button>
+                    </Link>
+                  </div>
                 )}
               </div>
             </div>

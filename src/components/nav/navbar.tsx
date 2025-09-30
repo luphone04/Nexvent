@@ -41,16 +41,18 @@ export function Navbar() {
                 </span>
                 
                 {/* Role-based navigation */}
-                {["ORGANIZER", "ADMIN"].includes(session.user?.role as string) && (
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href="/dashboard">Dashboard</Link>
-                  </Button>
-                )}
-                
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/dashboard">Dashboard</Link>
+                </Button>
+
                 <Button variant="outline" size="sm" asChild>
                   <Link href="/events">Events</Link>
                 </Button>
-                
+
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/registrations">My Registrations</Link>
+                </Button>
+
                 <Button variant="outline" size="sm" asChild>
                   <Link href="/profile">Profile</Link>
                 </Button>
@@ -103,16 +105,14 @@ export function Navbar() {
                 </div>
                 
                 {/* Role-based navigation */}
-                {["ORGANIZER", "ADMIN"].includes(session.user?.role as string) && (
-                  <Link
-                    href="/dashboard"
-                    className="block py-2 text-gray-900 hover:text-gray-600"
-                    onClick={closeMobileMenu}
-                  >
-                    Dashboard
-                  </Link>
-                )}
-                
+                <Link
+                  href="/dashboard"
+                  className="block py-2 text-gray-900 hover:text-gray-600"
+                  onClick={closeMobileMenu}
+                >
+                  Dashboard
+                </Link>
+
                 <Link
                   href="/events"
                   className="block py-2 text-gray-900 hover:text-gray-600"
@@ -120,7 +120,15 @@ export function Navbar() {
                 >
                   Events
                 </Link>
-                
+
+                <Link
+                  href="/registrations"
+                  className="block py-2 text-gray-900 hover:text-gray-600"
+                  onClick={closeMobileMenu}
+                >
+                  My Registrations
+                </Link>
+
                 <Link
                   href="/profile"
                   className="block py-2 text-gray-900 hover:text-gray-600"
