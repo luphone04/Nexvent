@@ -1,3 +1,61 @@
+Nexvent – Event Management Platform
+Team Members
+Wai Yan Paing
+Lu Phone Maw
+
+Overview
+
+Nexvent is an event management platform designed to simplify the process of creating, managing, and attending events. It empowers organizers to host events of any scale while enabling attendees to discover, register, and track their participation seamlessly. The platform supports a variety of event types and industries, providing an efficient and interactive experience for both sides.
+
+Key Features
+
+🎟️ Event Creation & Management: Organizers can easily create, edit, and manage events with detailed descriptions, schedules, and registration options.
+
+🔍 Event Discovery: Attendees can explore events across industries and categories using search and filters.
+
+📝 Registration & Tracking: Users can register for events and monitor their participation history.
+
+📅 Dynamic Dashboard: Real-time updates for upcoming and past events.
+
+💬 User Interaction: Event details, updates, and attendee engagement options.
+
+🌐 Responsive Design: Fully optimized for desktop and mobile devices.
+
+Tech Stack
+
+Next.js 15.5.2 - React framework for web application
+  
+React 19 - UI library for building user interfaces
+TypeScript - Type-safe JavaScript
+Tailwind CSS - Utility-first CSS framework for styling
+Shadcn/UI - Reusable component library
+
+  Backend
+
+  
+Next.js API Routes - Serverless API endpoints
+NextAuth.js - Authentication and session management
+Prisma ORM - Database object-relational mapper
+bcryptjs - Password hashing and encryption
+
+  Database
+
+  
+PostgreSQL 16 - Relational database management system
+
+  QR Code System
+
+  
+qrcode - QR code generation library
+html5-qrcode - QR code scanning (camera-based)
+
+  Deployment & Infrastructure
+  
+Azure Virtual Machine - Cloud hosting (Ubuntu 24.04)
+
+
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
