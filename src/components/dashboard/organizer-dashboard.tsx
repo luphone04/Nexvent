@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { LoadingCard } from '@/components/ui/loading'
 import { ErrorMessage } from '@/components/ui/error-boundary'
+import { apiClient } from '@/lib/utils/api-client'
 
 interface Event {
   id: string
@@ -46,7 +47,7 @@ export function OrganizerDashboard() {
     const fetchOrganizerData = async () => {
       try {
         // Fetch organizer's events
-        const eventsResponse = await fetch('/api/events?organizer=me')
+        const eventsResponse = await apiClient.get('/api/events?organizer=me')
         if (!eventsResponse.ok) {
           throw new Error('Failed to fetch events')
         }

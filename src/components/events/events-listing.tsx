@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { LoadingCard } from '@/components/ui/loading'
 import { ErrorMessage } from '@/components/ui/error-boundary'
+import { apiClient } from '@/lib/utils/api-client'
 
 interface Event {
   id: string
@@ -26,7 +27,7 @@ interface Event {
   capacity?: number
 }
 
-const CATEGORIES = ['TECHNOLOGY', 'BUSINESS', 'HEALTH', 'EDUCATION', 'ENTERTAINMENT', 'SPORTS', 'OTHER']
+const CATEGORIES = ['CONFERENCE', 'WORKSHOP', 'SEMINAR', 'SOCIAL', 'SPORTS', 'CONCERT', 'MEETUP', 'TRAINING']
 
 export function EventsListing() {
   const [events, setEvents] = useState<Event[]>([])
@@ -49,7 +50,7 @@ export function EventsListing() {
       if (searchQuery) params.append('search', searchQuery)
       if (selectedCategory) params.append('category', selectedCategory)
 
-      const response = await fetch(`/api/events?${params}`)
+      const response = await apiClient.get(`/api/events?${params.toString()}`)
       if (!response.ok) {
         throw new Error('Failed to fetch events')
       }

@@ -10,7 +10,8 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleSignOut = () => {
-    signOut({ callbackUrl: "/" })
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
+    signOut({ callbackUrl: `${basePath}/` })
   }
 
   const closeMobileMenu = () => {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { LoadingPage } from '@/components/ui/loading'
+import { apiClient } from '@/lib/utils/api-client'
 
 interface User {
   id: string
@@ -59,8 +60,8 @@ export function AdminDashboard() {
     try {
       setLoading(true)
       const [usersRes, statsRes] = await Promise.all([
-        fetch('/api/admin/users'),
-        fetch('/api/admin/stats')
+        apiClient.get('/api/admin/users'),
+        apiClient.get('/api/admin/stats')
       ])
 
       const usersData = await usersRes.json()
@@ -80,11 +81,7 @@ export function AdminDashboard() {
 
     try {
       setUpdatingRole(userId)
-      const response = await fetch(`/api/admin/users/${userId}/role`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: newRole })
-      })
+      const response = await apiClient.put(`/api/admin/users/${userId}/role`, { role: newRole })
 
       if (response.ok) {
         // Refresh users list

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { QRCodeDisplay } from '@/components/qr-code/qr-code-display'
+import { apiClient } from '@/lib/utils/api-client'
 
 interface Registration {
   id: string
@@ -39,7 +40,7 @@ export function RegistrationConfirmation({ registrationId }: RegistrationConfirm
   useEffect(() => {
     const fetchRegistration = async () => {
       try {
-        const response = await fetch(`/api/registrations/${registrationId}`)
+        const response = await apiClient.get(`/api/registrations/${registrationId}`)
         const data = await response.json()
 
         if (!response.ok) {
@@ -64,9 +65,7 @@ export function RegistrationConfirmation({ registrationId }: RegistrationConfirm
 
     setIsCancelling(true)
     try {
-      const response = await fetch(`/api/registrations/${registrationId}`, {
-        method: 'DELETE',
-      })
+      const response = await apiClient.delete(`/api/registrations/${registrationId}`)
 
       if (!response.ok) {
         const data = await response.json()

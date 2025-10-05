@@ -8,6 +8,7 @@ import { LoadingPage } from '@/components/ui/loading'
 import { ErrorMessage } from '@/components/ui/error-boundary'
 import { RelatedEvents } from '@/components/events/related-events'
 import { SocialShare } from '@/components/events/social-share'
+import { apiClient } from '@/lib/utils/api-client'
 
 interface Event {
   id: string
@@ -46,7 +47,7 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const response = await fetch(`/api/events/${eventId}`)
+        const response = await apiClient.get(`/api/events/${eventId}`)
         if (!response.ok) {
           throw new Error('Event not found')
         }
@@ -70,7 +71,7 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
       if (!session) return
 
       try {
-        const response = await fetch(`/api/registrations?eventId=${eventId}`)
+        const response = await apiClient.get(`/api/registrations?eventId=${eventId}`)
         if (response.ok) {
           const data = await response.json()
           // Find active registration for this event (not CANCELLED)
@@ -107,14 +108,15 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
   }
 
   const handleRegister = () => {
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
     if (!session) {
       // Redirect to login with callback to registration page
-      window.location.href = `/auth/signin?callbackUrl=/events/${eventId}/register`
+      window.location.href = `${basePath}/auth/signin?callbackUrl=/events/${eventId}/register`
       return
     }
 
     // Redirect to registration form
-    window.location.href = `/events/${eventId}/register`
+    window.location.href = `${basePath}/events/${eventId}/register`
   }
 
   const handleStatusToggle = async () => {
@@ -145,11 +147,7 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
         updateData.imageUrl = event.imageUrl
       }
 
-      const response = await fetch(`/api/events/${eventId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updateData),
-      })
+      const response = await apiClient.put(`/api/events/${eventId}`, updateData)
 
       if (response.ok) {
         window.location.reload()

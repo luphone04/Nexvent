@@ -3,7 +3,12 @@
     "allow": [
       "Bash(npx tsc:*)",
       "Bash(npm run build:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(ssh:*)",
+      "Read(//Users/richard/Downloads/FINAL_PREPARE_WEB/Backend3/**)",
+      "Bash(scp:*)",
+      "Bash(curl:*)",
+      "Bash(rsync:*)"
     ],
     "deny": [],
     "ask": []

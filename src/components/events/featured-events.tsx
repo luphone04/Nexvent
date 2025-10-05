@@ -33,7 +33,9 @@ export function FeaturedEvents() {
   useEffect(() => {
     const fetchFeaturedEvents = async () => {
       try {
-        const response = await fetch('/api/events?limit=6')
+        // Use window.location.origin to get the correct base URL with basePath
+        const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
+        const response = await fetch(`${basePath}/api/events?limit=6`)
         if (!response.ok) {
           throw new Error('Failed to fetch events')
         }

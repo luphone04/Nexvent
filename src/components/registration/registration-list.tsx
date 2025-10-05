@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
+import { apiClient } from '@/lib/utils/api-client'
 
 interface Registration {
   id: string
@@ -33,7 +34,7 @@ export function RegistrationList() {
 
     const fetchRegistrations = async () => {
       try {
-        const response = await fetch(`/api/attendees/${session.user.id}/registrations`)
+        const response = await apiClient.get(`/api/attendees/${session.user.id}/registrations`)
         const data = await response.json()
 
         if (!response.ok) {
@@ -58,9 +59,7 @@ export function RegistrationList() {
     }
 
     try {
-      const response = await fetch(`/api/registrations/${registrationId}`, {
-        method: 'DELETE',
-      })
+      const response = await apiClient.delete(`/api/registrations/${registrationId}`)
 
       if (!response.ok) {
         const data = await response.json()

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import { apiClient } from '@/lib/utils/api-client'
 
 interface Event {
   id: string
@@ -82,16 +83,10 @@ export function RegistrationForm({ event }: RegistrationFormProps) {
       if (formData.emergencyContact) requirements.push(`Emergency Contact: ${formData.emergencyContact}`)
       if (formData.emergencyPhone) requirements.push(`Emergency Phone: ${formData.emergencyPhone}`)
 
-      const response = await fetch('/api/registrations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          eventId: event.id,
-          attendeeId: session.user.id,
-          specialRequirements: requirements.length > 0 ? requirements.join(' | ') : null,
-        }),
+      const response = await apiClient.post('/api/registrations', {
+        eventId: event.id,
+        attendeeId: session.user.id,
+        specialRequirements: requirements.length > 0 ? requirements.join(' | ') : null,
       })
 
       const data = await response.json()

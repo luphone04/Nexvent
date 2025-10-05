@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { QRScanner } from '@/components/qr-code/qr-scanner'
+import { apiClient } from '@/lib/utils/api-client'
 
 interface Event {
   id: string
@@ -39,7 +40,7 @@ export function CheckInView({ event }: CheckInViewProps) {
   useEffect(() => {
     const fetchCheckInHistory = async () => {
       try {
-        const response = await fetch(`/api/registrations?eventId=${event.id}&status=ATTENDED`)
+        const response = await apiClient.get(`/api/registrations?eventId=${event.id}&status=ATTENDED`)
         if (response.ok) {
           const data = await response.json()
           const history = data.data.map((reg: any) => ({
@@ -72,14 +73,8 @@ export function CheckInView({ event }: CheckInViewProps) {
     setResult(null)
 
     try {
-      const response = await fetch('/api/registrations/check-in', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          qrData: decodedText,
-        }),
+      const response = await apiClient.post('/api/registrations/check-in', {
+        qrData: decodedText,
       })
 
       const data = await response.json()

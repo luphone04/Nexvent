@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { apiClient } from '@/lib/utils/api-client'
 
 interface EventFormProps {
   eventId?: string
@@ -57,7 +58,6 @@ export function EventForm({ eventId, initialData }: EventFormProps) {
 
     try {
       const url = eventId ? `/api/events/${eventId}` : '/api/events'
-      const method = eventId ? 'PUT' : 'POST'
 
       // Convert date to ISO format
       const eventDateTime = new Date(`${formData.eventDate}T${formData.eventTime || '00:00'}:00.000Z`)
@@ -68,13 +68,9 @@ export function EventForm({ eventId, initialData }: EventFormProps) {
         imageUrl: formData.imageUrl || undefined, // Don't send empty string
       }
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      })
+      const response = eventId
+        ? await apiClient.put(url, payload)
+        : await apiClient.post(url, payload)
 
       const data = await response.json()
 

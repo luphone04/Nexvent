@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { AppLayout } from '@/components/layout/app-layout'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { apiClient } from '@/lib/utils/api-client'
 
 interface Event {
   id: string
@@ -38,7 +39,7 @@ export default function AdminEventsPage() {
   }, [session, router])
 
   const fetchEvents = async () => {
-    const res = await fetch('/api/events?limit=100')
+    const res = await apiClient.get('/api/events?limit=100')
     if (res.ok) {
       const data = await res.json()
       setEvents(data.data)
@@ -49,9 +50,7 @@ export default function AdminEventsPage() {
   const handleDeleteEvent = async (eventId: string, eventTitle: string) => {
     if (!confirm(`Delete event "${eventTitle}"? This will also delete all registrations. This cannot be undone.`)) return
 
-    const res = await fetch(`/api/events/${eventId}`, {
-      method: 'DELETE'
-    })
+    const res = await apiClient.delete(`/api/events/${eventId}`)
 
     if (res.ok) {
       fetchEvents()

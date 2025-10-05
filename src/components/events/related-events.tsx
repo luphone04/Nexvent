@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { LoadingCard } from '@/components/ui/loading'
+import { apiClient } from '@/lib/utils/api-client'
 
 interface Event {
   id: string
@@ -33,7 +34,7 @@ export function RelatedEvents({ currentEventId, category }: RelatedEventsProps) 
   useEffect(() => {
     const fetchRelatedEvents = async () => {
       try {
-        const response = await fetch(`/api/events?category=${category}&limit=4`)
+        const response = await apiClient.get(`/api/events?category=${category}&limit=4`)
         if (response.ok) {
           const data = await response.json()
           // Filter out the current event and limit to 3 related events

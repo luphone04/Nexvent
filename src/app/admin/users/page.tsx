@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { AppLayout } from '@/components/layout/app-layout'
 import { Button } from '@/components/ui/button'
+import { apiClient } from '@/lib/utils/api-client'
 
 interface User {
   id: string
@@ -33,7 +34,7 @@ export default function AdminUsersPage() {
   }, [session, router])
 
   const fetchUsers = async () => {
-    const res = await fetch('/api/admin/users')
+    const res = await apiClient.get('/api/admin/users')
     if (res.ok) {
       const data = await res.json()
       setUsers(data.data)
@@ -46,11 +47,7 @@ export default function AdminUsersPage() {
 
     if (!confirm(`Change user role to ${newRole}?`)) return
 
-    const res = await fetch(`/api/admin/users/${userId}/role`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role: newRole })
-    })
+    const res = await apiClient.put(`/api/admin/users/${userId}/role`, { role: newRole })
 
     if (res.ok) {
       fetchUsers()
@@ -62,9 +59,7 @@ export default function AdminUsersPage() {
   const handleDeleteUser = async (userId: string, userName: string) => {
     if (!confirm(`Delete user "${userName}"? This cannot be undone.`)) return
 
-    const res = await fetch(`/api/admin/users/${userId}`, {
-      method: 'DELETE'
-    })
+    const res = await apiClient.delete(`/api/admin/users/${userId}`)
 
     if (res.ok) {
       fetchUsers()

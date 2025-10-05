@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { LoadingCard } from '@/components/ui/loading'
 import { ErrorMessage } from '@/components/ui/error-boundary'
+import { apiClient } from '@/lib/utils/api-client'
 
 interface PlatformStats {
   totalUsers: number
@@ -56,7 +57,7 @@ export function AdminDashboard() {
     const fetchAdminData = async () => {
       try {
         // Fetch platform statistics
-        const statsResponse = await fetch('/api/admin/stats')
+        const statsResponse = await apiClient.get('/api/admin/stats')
         if (statsResponse.ok) {
           const statsData = await statsResponse.json()
           const data = statsData.data
