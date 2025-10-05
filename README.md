@@ -9,17 +9,16 @@ Nexvent is an event management platform designed to simplify the process of crea
 
 Key Features
 
-🎟️ Event Creation & Management: Organizers can easily create, edit, and manage events with detailed descriptions, schedules, and registration options.
+Event Creation & Management: Organizers can easily create, edit, and manage events with detailed descriptions, schedules, and registration options.
 
-🔍 Event Discovery: Attendees can explore events across industries and categories using search and filters.
+Event Discovery: Attendees can explore events across industries and categories using search and filters.
 
-📝 Registration & Tracking: Users can register for events and monitor their participation history.
+Registration & Tracking: Users can register for events and monitor their participation history.
 
-📅 Dynamic Dashboard: Real-time updates for upcoming and past events.
+Dynamic Dashboard: Real-time updates for upcoming and past events.
 
-💬 User Interaction: Event details, updates, and attendee engagement options.
+User Interaction: Event details, updates, and attendee engagement options.
 
-🌐 Responsive Design: Fully optimized for desktop and mobile devices.
 
 Tech Stack
 
