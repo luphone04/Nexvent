@@ -1,31 +1,31 @@
-# 🎉 **Nexvent – Event Management Platform**
+# **Nexvent – Event Management Platform**
 
 ### 👥 **Team Members**
 - **Wai Yan Paing**  
 - **Lu Phone Maw**
 
 ---
-
-## 🧭 **Overview**
+## **Screen Shots**
+##  **Overview**
 **Nexvent** is an innovative event management platform designed to simplify how events are **created, managed, and attended**.  
 It empowers **organizers** to host events of any scale while allowing **attendees** to seamlessly discover, register, and track their participation.  
 Supporting multiple event types and industries, Nexvent offers a smooth, interactive experience for all users.
 
 ---
 
-## ✨ **Key Features**
-- 🛠️ **Event Creation & Management** – Create, edit, and manage events with details such as title, date, description, and registration limits.  
-- 🔍 **Event Discovery** – Explore events across industries and categories using intelligent search and filters.  
-- 📝 **Registration & Tracking** – Register for events and view your participation history in one place.  
-- 📅 **Dynamic Dashboard** – Get real-time updates for upcoming and past events.  
-- 💬 **User Interaction** – Stay informed with event details, announcements, and updates.  
-- 📱 **Responsive Design** – Optimized for both desktop and mobile experiences.  
+##  **Key Features**
+- **Event Creation & Management** – Create, edit, and manage events with details such as title, date, description, and registration limits.  
+- **Event Discovery** – Explore events across industries and categories using intelligent search and filters.  
+- **Registration & Tracking** – Register for events and view your participation history in one place.  
+- **Dynamic Dashboard** – Get real-time updates for upcoming and past events.  
+- **User Interaction** – Stay informed with event details, announcements, and updates.  
+- **Responsive Design** – Optimized for both desktop and mobile experiences.  
 
 ---
 
-## 🧩 **Tech Stack**
+##  **Tech Stack**
 
-### 🖥️ **Frontend**
+###  **Frontend**
 - **Next.js 15.5.2** – React framework for building full-stack web applications  
 - **React 19** – Modern UI library for interactive components  
 - **TypeScript** – Type-safe JavaScript for reliable development  
@@ -34,7 +34,7 @@ Supporting multiple event types and industries, Nexvent offers a smooth, interac
 
 ---
 
-### ⚙️ **Backend**
+###  **Backend**
 - **Next.js API Routes** – Serverless API endpoints  
 - **NextAuth.js** – Authentication and session management  
 - **Prisma ORM** – Object-relational mapper for database management  
@@ -42,12 +42,12 @@ Supporting multiple event types and industries, Nexvent offers a smooth, interac
 
 ---
 
-### 🗄️ **Database**
+###  **Database**
 - **PostgreSQL 16** – Relational database for structured event and user data  
 
 ---
 
-### 🔐 **QR Code System**
+###  **QR Code System**
 - **qrcode** – Generates unique QR codes for event passes  
 - **html5-qrcode** – Enables real-time QR code scanning via camera  
 
@@ -66,19 +66,19 @@ Supporting multiple event types and industries, Nexvent offers a smooth, interac
 
 ---
 
-## 🚀 **Getting Started**
+##  **Getting Started**
 
 ### **1. Clone the Repository**
 ```bash
 git clone https://github.com/your-username/nexvent.git
 cd nexvent
 
-1. **Install Dependencies**
+### **2. Install Dependencies**
 npm install
 # or
 yarn install
 
-2. Run the Development Server
+### **3. Run the Development Server**
 npm run dev
 # or
 yarn dev
@@ -87,11 +87,12 @@ yarn dev
 Open http://localhost:3000
  in your browser to view the app.
 
-⚙️ **Configuration**
+### ** Configuration**
 
 Create a .env.local file in the root directory and include the following:
 
 DATABASE_URL=your_postgresql_connection_string
 NEXTAUTH_SECRET=your_secret_key
 NEXTAUTH_URL=http://localhost:3000
+
 
