@@ -6,6 +6,9 @@
 
 ---
 ## **Screen Shots**
+**Attendes**
+<img width="1395" height="789" alt="Screenshot 2025-10-05 at 19 58 39" src="https://github.com/user-attachments/assets/c9d86424-7ded-4faf-a99c-2d45ab4ab309" />
+
 ##  **Overview**
 **Nexvent** is an innovative event management platform designed to simplify how events are **created, managed, and attended**.  
 It empowers **organizers** to host events of any scale while allowing **attendees** to seamlessly discover, register, and track their participation.  
@@ -74,11 +77,13 @@ git clone https://github.com/your-username/nexvent.git
 cd nexvent
 
 ### **2. Install Dependencies**
+```bash
 npm install
 # or
 yarn install
 
 ### **3. Run the Development Server**
+```bash
 npm run dev
 # or
 yarn dev
@@ -88,7 +93,7 @@ Open http://localhost:3000
  in your browser to view the app.
 
 ### ** Configuration**
-
+```bash
 Create a .env.local file in the root directory and include the following:
 
 DATABASE_URL=your_postgresql_connection_string
