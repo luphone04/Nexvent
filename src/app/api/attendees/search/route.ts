@@ -92,15 +92,15 @@ export async function GET(request: NextRequest) {
     // Apply privacy filtering
     const filteredResults = results
       .filter(user => {
-        const privacy = user.privacy as unknown || { allowSearch: true }
+        const privacy = (user.privacy as Record<string, boolean>) || { allowSearch: true }
         // Always show if it's the current user or if user is admin
         const isCurrentUser = currentUser && currentUser.id === user.id
         const isAdmin = currentUser && currentUser.role === UserRole.ADMIN
-        
+
         return isCurrentUser || isAdmin || privacy.allowSearch
       })
       .map(user => {
-        const privacy = user.privacy as unknown || {
+        const privacy = (user.privacy as Record<string, boolean>) || {
           showEmail: false,
           showOrganization: true
         }

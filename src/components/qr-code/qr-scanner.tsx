@@ -14,8 +14,14 @@ export function QRScanner({ onScanSuccess, onScanError }: QRScannerProps) {
   const [error, setError] = useState('')
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const [cameras, setCameras] = useState<string[]>([])
+  const scannerIdRef = useRef<string>('')
+  const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
+    // Generate ID only on client side to avoid hydration mismatch
+    scannerIdRef.current = 'qr-scanner-' + Math.random()
+    setIsMounted(true)
+
     // Get available cameras
     Html5Qrcode.getCameras().then(devices => {
       if (devices && devices.length) {
@@ -34,8 +40,7 @@ export function QRScanner({ onScanSuccess, onScanError }: QRScannerProps) {
   const startScanning = async () => {
     try {
       setError('')
-      const scannerId = 'qr-scanner-' + Math.random()
-      scannerRef.current = new Html5Qrcode(scannerId)
+      scannerRef.current = new Html5Qrcode(scannerIdRef.current)
 
       await scannerRef.current.start(
         { facingMode: 'environment' }, // Use back camera on mobile
@@ -75,6 +80,10 @@ export function QRScanner({ onScanSuccess, onScanError }: QRScannerProps) {
     }
   }
 
+  if (!isMounted) {
+    return null // Don't render until client-side hydration is complete
+  }
+
   return (
     <div className="space-y-4">
       {error && (
@@ -84,7 +93,7 @@ export function QRScanner({ onScanSuccess, onScanError }: QRScannerProps) {
       )}
 
       <div
-        id={`qr-scanner-${Math.random()}`}
+        id={scannerIdRef.current}
         className="w-full max-w-md mx-auto rounded-lg overflow-hidden border-2 border-gray-300"
         style={{ minHeight: isScanning ? '300px' : '0' }}
       />

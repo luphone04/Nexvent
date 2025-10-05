@@ -1,10 +1,9 @@
 import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
 
 export default withAuth(
-  function middleware(req: NextRequest) {
-    const token = req.nextauth.token
+  function middleware(req) {
+    const token = req.nextauth?.token
     const isAuth = !!token
     const isAuthPage = req.nextUrl.pathname.startsWith("/auth")
 

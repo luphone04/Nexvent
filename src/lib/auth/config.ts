@@ -24,14 +24,18 @@ export const authConfig: NextAuthOptions = {
           label: "Password", 
           type: "password" 
         },
-        name: { 
-          label: "Name", 
+        name: {
+          label: "Name",
           type: "text",
-          placeholder: "John Doe" 
+          placeholder: "John Doe"
         },
-        isSignUp: { 
-          label: "Is Sign Up", 
-          type: "hidden" 
+        role: {
+          label: "Role",
+          type: "text"
+        },
+        isSignUp: {
+          label: "Is Sign Up",
+          type: "hidden"
         }
       },
       async authorize(credentials) {
@@ -61,13 +65,18 @@ export const authConfig: NextAuthOptions = {
           const userCount = await prisma.user.count()
           const isFirstUser = userCount === 0
 
+          // Determine role: first user is admin, otherwise use selected role (default to ATTENDEE)
+          const userRole = isFirstUser
+            ? UserRole.ADMIN
+            : (credentials.role === 'ORGANIZER' ? UserRole.ORGANIZER : UserRole.ATTENDEE)
+
           // Create user
           const user = await prisma.user.create({
             data: {
               email: credentials.email,
               name: credentials.name,
               password: hashedPassword,
-              role: isFirstUser ? UserRole.ADMIN : UserRole.ATTENDEE,
+              role: userRole,
             }
           })
 
@@ -119,7 +128,7 @@ export const authConfig: NextAuthOptions = {
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string
-        session.user.role = token.role as string
+        session.user.role = token.role as UserRole
       }
       return session
     }

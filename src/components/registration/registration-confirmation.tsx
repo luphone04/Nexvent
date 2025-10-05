@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { QRCodeDisplay } from '@/components/qr-code/qr-code-display'
 
@@ -29,9 +30,11 @@ interface RegistrationConfirmationProps {
 }
 
 export function RegistrationConfirmation({ registrationId }: RegistrationConfirmationProps) {
+  const router = useRouter()
   const [registration, setRegistration] = useState<Registration | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isCancelling, setIsCancelling] = useState(false)
 
   useEffect(() => {
     const fetchRegistration = async () => {
@@ -53,6 +56,30 @@ export function RegistrationConfirmation({ registrationId }: RegistrationConfirm
 
     fetchRegistration()
   }, [registrationId])
+
+  const handleCancelRegistration = async () => {
+    if (!confirm('Are you sure you want to cancel this registration? This action cannot be undone.')) {
+      return
+    }
+
+    setIsCancelling(true)
+    try {
+      const response = await fetch(`/api/registrations/${registrationId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to cancel registration')
+      }
+
+      alert('Registration cancelled successfully')
+      router.push('/registrations')
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to cancel registration')
+      setIsCancelling(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -83,6 +110,8 @@ export function RegistrationConfirmation({ registrationId }: RegistrationConfirm
   }
 
   const isWaitlisted = registration.status === 'WAITLISTED'
+  const eventPassed = new Date(registration.event.eventDate) < new Date()
+  const canCancel = !eventPassed && registration.status === 'REGISTERED'
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
@@ -205,27 +234,15 @@ export function RegistrationConfirmation({ registrationId }: RegistrationConfirm
       {/* Next Steps */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
         <h3 className="font-semibold mb-3">What&apos;s Next?</h3>
-        <ul className="space-y-2 text-sm">
-          <li className="flex items-start">
-            <span className="mr-2">📧</span>
-            <span>A confirmation email has been sent to {registration.attendee.email}</span>
-          </li>
+        <ul className="space-y-2 text-sm list-disc list-inside">
+          <li>A confirmation email has been sent to {registration.attendee.email}</li>
           {!isWaitlisted && (
             <>
-              <li className="flex items-start">
-                <span className="mr-2">📱</span>
-                <span>Save your QR code for easy access at the event</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">📅</span>
-                <span>Add the event to your calendar</span>
-              </li>
+              <li>Save your QR code for easy access at the event</li>
+              <li>Add the event to your calendar</li>
             </>
           )}
-          <li className="flex items-start">
-            <span className="mr-2">🔔</span>
-            <span>You will receive a reminder email before the event</span>
-          </li>
+          <li>You will receive a reminder email before the event</li>
         </ul>
       </div>
 
@@ -243,6 +260,15 @@ export function RegistrationConfirmation({ registrationId }: RegistrationConfirm
         >
           Browse More Events
         </Link>
+        {canCancel && (
+          <button
+            onClick={handleCancelRegistration}
+            disabled={isCancelling}
+            className="px-6 py-3 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 text-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isCancelling ? 'Cancelling...' : 'Cancel Registration'}
+          </button>
+        )}
       </div>
 
       {/* Print Styles */}

@@ -18,8 +18,17 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const queryObj = Object.fromEntries(searchParams.entries())
-    
+
     const query = eventQuerySchema.parse(queryObj)
+
+    // Handle "organizer=me" special case
+    if (queryObj.organizer === 'me') {
+      const currentUser = await getCurrentUser()
+      if (currentUser) {
+        queryObj.organizerId = currentUser.id
+        query.organizerId = currentUser.id
+      }
+    }
 
     // Build where clause for filtering
     const where: Record<string, unknown> = {}
@@ -36,22 +45,22 @@ export async function GET(request: NextRequest) {
     }
     
     if (query.dateFrom || query.dateTo) {
-      where.eventDate = {}
+      where.eventDate = {} as { gte?: Date; lte?: Date }
       if (query.dateFrom) {
-        where.eventDate.gte = new Date(query.dateFrom)
+        (where.eventDate as { gte?: Date; lte?: Date }).gte = new Date(query.dateFrom)
       }
       if (query.dateTo) {
-        where.eventDate.lte = new Date(query.dateTo)
+        (where.eventDate as { gte?: Date; lte?: Date }).lte = new Date(query.dateTo)
       }
     }
     
     if (query.priceMin !== undefined || query.priceMax !== undefined) {
-      where.ticketPrice = {}
+      where.ticketPrice = {} as { gte?: number; lte?: number }
       if (query.priceMin !== undefined) {
-        where.ticketPrice.gte = query.priceMin
+        (where.ticketPrice as { gte?: number; lte?: number }).gte = query.priceMin
       }
       if (query.priceMax !== undefined) {
-        where.ticketPrice.lte = query.priceMax
+        (where.ticketPrice as { gte?: number; lte?: number }).lte = query.priceMax
       }
     }
     

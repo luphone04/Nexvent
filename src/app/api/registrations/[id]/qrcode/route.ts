@@ -8,7 +8,7 @@ import QRCode from 'qrcode'
 // GET /api/registrations/[id]/qrcode - Generate QR code for registration
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
@@ -125,7 +125,7 @@ export async function GET(
 // POST /api/registrations/[id]/qrcode - Regenerate QR code (admin/organizer only)
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params

@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
 }
 
 // DELETE /api/admin/logs - Clear API logs (admin only)
-export async function DELETE(_request: NextRequest) {
+export async function DELETE() {
   try {
     const currentUser = await getCurrentUser()
     

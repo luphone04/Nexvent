@@ -18,7 +18,7 @@ function generateCheckInCode(): string {
 // GET /api/events/[id]/registrations - Get registrations for specific event
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id: eventId } = await params
@@ -77,11 +77,11 @@ export async function GET(
           status: true,
           registrationDate: true,
           checkInCode: true,
-          notes: true,
+          specialRequirements: true,
           waitlistPosition: true,
           createdAt: true,
           updatedAt: true,
-          user: {
+          attendee: {
             select: {
               id: true,
               name: true,
@@ -135,7 +135,7 @@ export async function GET(
 // POST /api/events/[id]/registrations - Bulk register users for event (admin/organizer only)
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id: eventId } = await params
@@ -157,9 +157,7 @@ export async function POST(
         organizerId: true,
         status: true,
         eventDate: true,
-        registrationDeadline: true,
         capacity: true,
-        allowWaitlist: true,
         _count: {
           select: {
             registrations: {
@@ -206,26 +204,21 @@ export async function POST(
     const existingRegistrations = await prisma.registration.findMany({
       where: {
         eventId,
-        userId: { in: validatedData.userIds }
+        attendeeId: { in: validatedData.userIds }
       },
-      select: { userId: true }
+      select: { attendeeId: true }
     })
 
     if (existingRegistrations.length > 0) {
-      const alreadyRegistered = existingRegistrations.map(r => r.userId)
+      const alreadyRegistered = existingRegistrations.map(r => r.attendeeId)
       return errorResponse(`Users already registered: ${alreadyRegistered.join(', ')}`, 400, "USERS_ALREADY_REGISTERED")
     }
 
     // Calculate how many can be registered vs waitlisted
     const currentRegistrations = event._count.registrations
     const availableSpots = event.capacity ? Math.max(0, event.capacity - currentRegistrations) : validatedData.userIds.length
-    
-    const _toRegister = validatedData.userIds.slice(0, availableSpots)
-    const toWaitlist = validatedData.userIds.slice(availableSpots)
 
-    if (toWaitlist.length > 0 && !event.allowWaitlist) {
-      return errorResponse("Event is full and waitlist is not allowed", 400, "EVENT_FULL")
-    }
+    const toWaitlist = validatedData.userIds.slice(availableSpots)
 
     // Get next waitlist position if needed
     let nextWaitlistPosition = 0
@@ -246,11 +239,11 @@ export async function POST(
         const isWaitlisted = index >= availableSpots
         return prisma.registration.create({
           data: {
-            userId,
+            attendeeId: userId,
             eventId,
             status: isWaitlisted ? RegistrationStatus.WAITLISTED : RegistrationStatus.REGISTERED,
             checkInCode: generateCheckInCode(),
-            notes: validatedData.notes,
+            specialRequirements: validatedData.notes,
             waitlistPosition: isWaitlisted ? nextWaitlistPosition + (index - availableSpots) + 1 : null,
             registrationDate: new Date()
           },
@@ -258,7 +251,7 @@ export async function POST(
             id: true,
             status: true,
             waitlistPosition: true,
-            user: {
+            attendee: {
               select: {
                 id: true,
                 name: true,
@@ -277,7 +270,7 @@ export async function POST(
       registered: registered.length,
       waitlisted: waitlisted.length,
       registrations
-    }, `Bulk registration completed: ${registered.length} registered, ${waitlisted.length} waitlisted`, undefined, 201)
+    }, `Bulk registration completed: ${registered.length} registered, ${waitlisted.length} waitlisted`)
 
   } catch (error) {
     return handleError(error)

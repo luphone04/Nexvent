@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
 
     // Apply privacy filtering to response
     const filteredAttendees = attendees.map(attendee => {
-      const privacy = attendee.privacy as unknown || {
+      const privacy = (attendee.privacy as Record<string, boolean>) || {
         showEmail: false,
         showPhone: false,
         showOrganization: true,

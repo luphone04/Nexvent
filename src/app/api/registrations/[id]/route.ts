@@ -8,7 +8,7 @@ import { UserRole, RegistrationStatus } from "@prisma/client"
 // GET /api/registrations/[id] - Get single registration
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
@@ -91,7 +91,7 @@ export async function GET(
 // PUT /api/registrations/[id] - Update registration
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
@@ -195,7 +195,7 @@ export async function PUT(
 // DELETE /api/registrations/[id] - Cancel registration
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
@@ -224,7 +224,6 @@ export async function DELETE(
             eventDate: true,
             status: true,
             capacity: true,
-            allowWaitlist: true,
             _count: {
               select: {
                 registrations: {
@@ -246,8 +245,8 @@ export async function DELETE(
     }
 
     // Check permissions - users can cancel their own, organizers can cancel for their events, admins can cancel any
-    const canCancel = userRole === UserRole.ADMIN || 
-                     registration.userId === userId || 
+    const canCancel = userRole === UserRole.ADMIN ||
+                     registration.attendeeId === userId ||
                      registration.event.organizerId === userId
 
     if (!canCancel) {
@@ -257,7 +256,7 @@ export async function DELETE(
     // Check if cancellation is allowed based on timing
     const hoursUntilEvent = (new Date(registration.event.eventDate).getTime() - new Date().getTime()) / (1000 * 60 * 60)
     
-    if (hoursUntilEvent < 24 && registration.userId === userId && userRole === UserRole.ATTENDEE) {
+    if (hoursUntilEvent < 24 && registration.attendeeId === userId && userRole === UserRole.ATTENDEE) {
       return errorResponse("Registrations cannot be cancelled less than 24 hours before the event", 400, "CANCELLATION_NOT_ALLOWED")
     }
 
@@ -282,7 +281,7 @@ export async function DELETE(
       })
 
       // If this was a registered user (not waitlisted), promote next person from waitlist
-      if (registration.status === RegistrationStatus.REGISTERED && registration.event.allowWaitlist) {
+      if (registration.status === RegistrationStatus.REGISTERED) {
         const nextWaitlisted = await tx.registration.findFirst({
           where: {
             eventId: registration.event.id,

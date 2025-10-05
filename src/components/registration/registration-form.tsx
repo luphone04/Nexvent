@@ -75,6 +75,13 @@ export function RegistrationForm({ event }: RegistrationFormProps) {
     setError(null)
 
     try {
+      // Combine all special requirements into one field
+      const requirements = []
+      if (formData.specialRequirements) requirements.push(`Special Requirements: ${formData.specialRequirements}`)
+      if (formData.dietaryRestrictions) requirements.push(`Dietary: ${formData.dietaryRestrictions}`)
+      if (formData.emergencyContact) requirements.push(`Emergency Contact: ${formData.emergencyContact}`)
+      if (formData.emergencyPhone) requirements.push(`Emergency Phone: ${formData.emergencyPhone}`)
+
       const response = await fetch('/api/registrations', {
         method: 'POST',
         headers: {
@@ -83,10 +90,7 @@ export function RegistrationForm({ event }: RegistrationFormProps) {
         body: JSON.stringify({
           eventId: event.id,
           attendeeId: session.user.id,
-          specialRequirements: formData.specialRequirements || null,
-          dietaryRestrictions: formData.dietaryRestrictions || null,
-          emergencyContact: formData.emergencyContact || null,
-          emergencyPhone: formData.emergencyPhone || null,
+          specialRequirements: requirements.length > 0 ? requirements.join(' | ') : null,
         }),
       })
 

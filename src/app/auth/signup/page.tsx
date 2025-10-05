@@ -14,6 +14,7 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [role, setRole] = useState("ATTENDEE")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
@@ -40,6 +41,7 @@ export default function SignUpPage() {
         email,
         password,
         name,
+        role,
         isSignUp: "true",
         redirect: false,
       })
@@ -49,7 +51,7 @@ export default function SignUpPage() {
       } else if (result?.ok) {
         router.push("/events")
       }
-    } catch (_error) {
+    } catch {
       setError("An unexpected error occurred")
     } finally {
       setIsLoading(false)
@@ -121,6 +123,19 @@ export default function SignUpPage() {
                 disabled={isLoading}
                 minLength={6}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">I want to</Label>
+              <select
+                id="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                disabled={isLoading}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="ATTENDEE">Attend events</option>
+                <option value="ORGANIZER">Create and manage events</option>
+              </select>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">

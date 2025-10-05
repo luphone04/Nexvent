@@ -56,12 +56,12 @@ export async function GET(request: NextRequest) {
     
     // Date filtering
     if (query.fromDate || query.toDate) {
-      where.registrationDate = {}
+      where.registrationDate = {} as { gte?: Date; lte?: Date }
       if (query.fromDate) {
-        where.registrationDate.gte = new Date(query.fromDate)
+        (where.registrationDate as { gte?: Date; lte?: Date }).gte = new Date(query.fromDate)
       }
       if (query.toDate) {
-        where.registrationDate.lte = new Date(query.toDate)
+        (where.registrationDate as { gte?: Date; lte?: Date }).lte = new Date(query.toDate)
       }
     }
 
@@ -101,6 +101,7 @@ export async function GET(request: NextRequest) {
           status: true,
           registrationDate: true,
           checkInCode: true,
+          checkInTime: true,
           specialRequirements: true,
           waitlistPosition: true,
           createdAt: true,
@@ -203,23 +204,36 @@ export async function POST(request: NextRequest) {
       return errorResponse("Cannot register for past events", 400, "EVENT_EXPIRED")
     }
 
-    // Check if user is already registered
-    const existingRegistration = await prisma.registration.findUnique({
+    // Check if user has any existing registration
+    const existingRegistration = await prisma.registration.findFirst({
       where: {
-        eventId_attendeeId: {
-          eventId: validatedData.eventId,
-          attendeeId: userId
-        }
+        eventId: validatedData.eventId,
+        attendeeId: userId
       }
     })
 
-    if (existingRegistration) {
-      return errorResponse("You are already registered for this event", 400, "ALREADY_REGISTERED")
+    // If user has an active registration or already attended, prevent duplicate
+    if (existingRegistration && (
+      existingRegistration.status === RegistrationStatus.REGISTERED ||
+      existingRegistration.status === RegistrationStatus.WAITLISTED ||
+      existingRegistration.status === RegistrationStatus.ATTENDED
+    )) {
+      const message = existingRegistration.status === RegistrationStatus.ATTENDED
+        ? "You have already attended this event"
+        : "You are already registered for this event"
+      return errorResponse(message, 400, "ALREADY_REGISTERED")
+    }
+
+    // If user has a cancelled registration, delete it first to allow re-registration
+    if (existingRegistration && existingRegistration.status === RegistrationStatus.CANCELLED) {
+      await prisma.registration.delete({
+        where: { id: existingRegistration.id }
+      })
     }
 
     // Check capacity and determine registration status
     const currentRegistrations = event._count.registrations
-    let registrationStatus = RegistrationStatus.REGISTERED
+    let registrationStatus: RegistrationStatus = RegistrationStatus.REGISTERED
     let waitlistPosition: number | null = null
 
     if (event.capacity && currentRegistrations >= event.capacity) {
@@ -245,7 +259,7 @@ export async function POST(request: NextRequest) {
         eventId: validatedData.eventId,
         status: registrationStatus,
         checkInCode: generateCheckInCode(),
-        specialRequirements: validatedData.specialRequirements,
+        specialRequirements: validatedData.specialRequirements || validatedData.notes,
         waitlistPosition,
         registrationDate: new Date()
       },
@@ -285,7 +299,7 @@ export async function POST(request: NextRequest) {
       ? "Registration successful" 
       : `Added to waitlist at position ${waitlistPosition}`
 
-    return successResponse(registration, message, undefined, 201)
+    return successResponse(registration, message)
 
   } catch (error) {
     return handleError(error)

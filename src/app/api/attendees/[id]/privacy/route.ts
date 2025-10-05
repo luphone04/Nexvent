@@ -8,7 +8,7 @@ import { UserRole } from "@prisma/client"
 // GET /api/attendees/[id]/privacy - Get privacy settings
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
@@ -57,7 +57,7 @@ export async function GET(
 // PUT /api/attendees/[id]/privacy - Update privacy settings
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params

@@ -8,7 +8,7 @@ import { UserRole, RegistrationStatus } from "@prisma/client"
 // POST /api/events/[id]/checkin - Check in attendee using code
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id: eventId } = await params
@@ -54,7 +54,7 @@ export async function POST(
       select: {
         id: true,
         status: true,
-        user: {
+        attendee: {
           select: {
             id: true,
             name: true,
@@ -72,8 +72,8 @@ export async function POST(
     // Check if already checked in
     if (registration.status === RegistrationStatus.ATTENDED) {
       return successResponse(
-        registration, 
-        `${registration.user.name} is already checked in`
+        registration,
+        `${registration.attendee.name} is already checked in`
       )
     }
 
@@ -94,7 +94,7 @@ export async function POST(
         id: true,
         status: true,
         checkInCode: true,
-        user: {
+        attendee: {
           select: {
             id: true,
             name: true,
@@ -106,8 +106,8 @@ export async function POST(
     })
 
     return successResponse(
-      updatedRegistration, 
-      `${registration.user.name} checked in successfully`
+      updatedRegistration,
+      `${registration.attendee.name} checked in successfully`
     )
 
   } catch (error) {
@@ -118,7 +118,7 @@ export async function POST(
 // GET /api/events/[id]/checkin - Get check-in statistics
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id: eventId } = await params
@@ -181,7 +181,7 @@ export async function GET(
       select: {
         id: true,
         updatedAt: true,
-        user: {
+        attendee: {
           select: {
             name: true,
             avatarUrl: true

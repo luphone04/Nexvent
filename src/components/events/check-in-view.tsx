@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { QRScanner } from '@/components/qr-code/qr-scanner'
@@ -32,11 +32,43 @@ export function CheckInView({ event }: CheckInViewProps) {
     time: string
     alreadyCheckedIn?: boolean
   }>>([])
+  const lastScannedRef = useRef<string>('')
+  const lastScanTimeRef = useRef<number>(0)
+
+  // Fetch check-in history on mount
+  useEffect(() => {
+    const fetchCheckInHistory = async () => {
+      try {
+        const response = await fetch(`/api/registrations?eventId=${event.id}&status=ATTENDED`)
+        if (response.ok) {
+          const data = await response.json()
+          const history = data.data.map((reg: any) => ({
+            name: reg.attendee.name,
+            time: reg.checkInTime ? new Date(reg.checkInTime).toLocaleTimeString() : 'Unknown',
+            alreadyCheckedIn: true
+          }))
+          setCheckInHistory(history)
+        }
+      } catch (error) {
+        console.error('Error fetching check-in history:', error)
+      }
+    }
+
+    fetchCheckInHistory()
+  }, [event.id])
 
   const handleScanSuccess = async (decodedText: string) => {
-    if (isProcessing) return
+    const now = Date.now()
+
+    // Prevent duplicate scans: same QR code within 3 seconds
+    if (isProcessing ||
+        (lastScannedRef.current === decodedText && now - lastScanTimeRef.current < 3000)) {
+      return
+    }
 
     setIsProcessing(true)
+    lastScannedRef.current = decodedText
+    lastScanTimeRef.current = now
     setResult(null)
 
     try {
@@ -53,13 +85,15 @@ export function CheckInView({ event }: CheckInViewProps) {
       const data = await response.json()
 
       if (response.ok) {
-        const newEntry = {
-          name: data.data.attendee.name,
-          time: new Date().toLocaleTimeString(),
-          alreadyCheckedIn: data.data.alreadyCheckedIn
+        // Only add to history if this is a new check-in, not if already checked in
+        if (!data.data.alreadyCheckedIn) {
+          const newEntry = {
+            name: data.data.attendee.name,
+            time: new Date().toLocaleTimeString(),
+            alreadyCheckedIn: false
+          }
+          setCheckInHistory(prev => [newEntry, ...prev])
         }
-
-        setCheckInHistory(prev => [newEntry, ...prev])
 
         setResult({
           success: true,
@@ -212,7 +246,7 @@ export function CheckInView({ event }: CheckInViewProps) {
               <div className="flex justify-between items-center text-sm">
                 <span className="font-medium">Total Checked In:</span>
                 <span className="text-lg font-bold text-green-600">
-                  {checkInHistory.filter(e => !e.alreadyCheckedIn).length}
+                  {checkInHistory.length}
                 </span>
               </div>
             </div>

@@ -3,6 +3,7 @@ import { EventForm } from '@/components/events/event-form'
 import { redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { authConfig } from '@/lib/auth/config'
+import { prisma } from '@/lib/db'
 
 interface EditEventPageProps {
   params: Promise<{
@@ -12,17 +13,24 @@ interface EditEventPageProps {
 
 async function getEvent(eventId: string) {
   try {
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
-    const response = await fetch(`${baseUrl}/api/events/${eventId}`, {
-      cache: 'no-store',
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        eventDate: true,
+        eventTime: true,
+        location: true,
+        capacity: true,
+        category: true,
+        ticketPrice: true,
+        imageUrl: true,
+        status: true,
+        organizerId: true,
+      }
     })
-
-    if (!response.ok) {
-      return null
-    }
-
-    const data = await response.json()
-    return data.data
+    return event
   } catch (error) {
     console.error('Error fetching event:', error)
     return null
@@ -81,7 +89,7 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
     location: event.location,
     category: event.category,
     capacity: event.capacity,
-    ticketPrice: typeof event.ticketPrice === 'string' ? parseFloat(event.ticketPrice) : event.ticketPrice,
+    ticketPrice: event.ticketPrice ? parseFloat(event.ticketPrice.toString()) : 0,
     imageUrl: event.imageUrl || '',
   }
 

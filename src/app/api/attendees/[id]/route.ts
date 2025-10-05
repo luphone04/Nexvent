@@ -8,7 +8,7 @@ import { UserRole } from "@prisma/client"
 // GET /api/attendees/[id] - Get single attendee profile
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
@@ -101,7 +101,7 @@ export async function GET(
       return errorResponse("Attendee not found", 404, "NOT_FOUND")
     }
 
-    const privacy = attendee.privacy as unknown || {
+    const privacy = (attendee.privacy as Record<string, boolean>) || {
       showEmail: false,
       showPhone: false,
       showOrganization: true,
@@ -146,7 +146,7 @@ export async function GET(
 // PUT /api/attendees/[id] - Update attendee profile
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params

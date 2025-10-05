@@ -51,12 +51,11 @@ export class APILogger {
       method: request.method,
       url: request.url,
       userAgent: request.headers.get('user-agent') || undefined,
-      ip: request.ip || 
-          request.headers.get('x-forwarded-for')?.split(',')[0] || 
-          request.headers.get('x-real-ip') || 
+      ip: request.headers.get('x-forwarded-for')?.split(',')[0] ||
+          request.headers.get('x-real-ip') ||
           'unknown',
-      userId: currentUser?.id,
-      userRole: currentUser?.role
+      userId: (currentUser as { id?: string })?.id,
+      userRole: (currentUser as { role?: string })?.role
     }
     
     // Add to memory log

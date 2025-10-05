@@ -6,7 +6,7 @@ import QRCode from 'qrcode'
 // GET /api/events/[id]/qrcode - Generate QR code for event (for registration or info)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id: eventId } = await params

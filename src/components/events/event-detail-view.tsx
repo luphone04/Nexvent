@@ -41,6 +41,7 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
   const [event, setEvent] = useState<Event | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [userRegistration, setUserRegistration] = useState<any>(null)
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -62,6 +63,32 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
       fetchEvent()
     }
   }, [eventId])
+
+  // Check if user is already registered
+  useEffect(() => {
+    const checkRegistration = async () => {
+      if (!session) return
+
+      try {
+        const response = await fetch(`/api/registrations?eventId=${eventId}`)
+        if (response.ok) {
+          const data = await response.json()
+          // Find active registration for this event (not CANCELLED)
+          const registration = data.data.find((reg: any) =>
+            reg.event.id === eventId &&
+            (reg.status === 'REGISTERED' || reg.status === 'WAITLISTED' || reg.status === 'ATTENDED')
+          )
+          setUserRegistration(registration || null)
+        }
+      } catch {
+        // Ignore errors - user just not registered
+      }
+    }
+
+    if (eventId && session) {
+      checkRegistration()
+    }
+  }, [eventId, session])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -101,10 +128,27 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
     if (!confirm(confirmMsg)) return
 
     try {
+      const updateData: any = {
+        status: newStatus,
+        title: event.title,
+        description: event.description,
+        eventDate: event.eventDate,
+        eventTime: event.eventTime,
+        location: event.location,
+        capacity: event.capacity,
+        category: event.category,
+        ticketPrice: typeof event.ticketPrice === 'string' ? parseFloat(event.ticketPrice) : event.ticketPrice,
+      }
+
+      // Only include imageUrl if it exists and is not empty
+      if (event.imageUrl) {
+        updateData.imageUrl = event.imageUrl
+      }
+
       const response = await fetch(`/api/events/${eventId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify(updateData),
       })
 
       if (response.ok) {
@@ -153,7 +197,8 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
   const capacityStatus = getCapacityStatus()
   const eventPassed = new Date(event.eventDate) < new Date()
   const canRegister = !eventPassed && event.status === 'PUBLISHED' &&
-                     (!event.capacity || event._count.registrations < event.capacity)
+                     (!event.capacity || event._count.registrations < event.capacity) &&
+                     !userRegistration  // Can't register if already registered
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -235,9 +280,24 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
                 </div>
               </div>
 
-              {/* Registration Section */}
+              {/* Registration Section - Hide for organizers */}
               <div className="flex-shrink-0 md:w-64 space-y-3">
-                {canRegister ? (
+                {session?.user?.id === event.organizer.id ? (
+                  // Don't show registration status for organizers
+                  null
+                ) : userRegistration ? (
+                  <div className="space-y-2">
+                    <div className="text-center p-4 bg-green-100 rounded-lg border-2 border-green-500">
+                      <span className="text-green-800 font-semibold">✓ Already Registered</span>
+                      <p className="text-sm text-green-700 mt-1">Status: {userRegistration.status}</p>
+                    </div>
+                    <Link href={`/registrations/${userRegistration.id}/confirmation`}>
+                      <Button variant="outline" className="w-full">
+                        View Registration
+                      </Button>
+                    </Link>
+                  </div>
+                ) : canRegister ? (
                   <Button
                     onClick={handleRegister}
                     className="w-full text-lg py-3"
@@ -270,8 +330,16 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
                 {/* Organizer Actions */}
                 {session?.user?.id === event.organizer.id && (
                   <div className="space-y-2">
-                    <Link href={`/events/${event.id}/check-in`} className="block">
+                    <Link href={`/events/${event.id}/attendees`} className="block">
                       <Button className="w-full">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        View Attendees
+                      </Button>
+                    </Link>
+                    <Link href={`/events/${event.id}/check-in`} className="block">
+                      <Button variant="outline" className="w-full">
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                         </svg>

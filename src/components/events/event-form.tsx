@@ -179,7 +179,10 @@ export function EventForm({ eventId, initialData }: EventFormProps) {
           <input
             type="number"
             value={formData.capacity}
-            onChange={(e) => handleChange('capacity', e.target.value === '' ? 1 : parseInt(e.target.value))}
+            onChange={(e) => handleChange('capacity', e.target.value === '' ? '' : parseInt(e.target.value))}
+            onBlur={(e) => {
+              if (e.target.value === '') handleChange('capacity', 1)
+            }}
             required
             min="1"
             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -193,7 +196,10 @@ export function EventForm({ eventId, initialData }: EventFormProps) {
           <input
             type="number"
             value={formData.ticketPrice}
-            onChange={(e) => handleChange('ticketPrice', e.target.value === '' ? 0 : parseFloat(e.target.value))}
+            onChange={(e) => handleChange('ticketPrice', e.target.value === '' ? '' : parseFloat(e.target.value))}
+            onBlur={(e) => {
+              if (e.target.value === '') handleChange('ticketPrice', 0)
+            }}
             min="0"
             step="0.01"
             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

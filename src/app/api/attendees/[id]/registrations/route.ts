@@ -8,7 +8,7 @@ import { UserRole, RegistrationStatus } from "@prisma/client"
 // GET /api/attendees/[id]/registrations - Get registration history for specific attendee
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id: attendeeId } = await params
@@ -60,12 +60,12 @@ export async function GET(
 
     // Date filtering
     if (query.fromDate || query.toDate) {
-      where.registrationDate = {}
+      where.registrationDate = {} as { gte?: Date; lte?: Date }
       if (query.fromDate) {
-        where.registrationDate.gte = new Date(query.fromDate)
+        (where.registrationDate as { gte?: Date; lte?: Date }).gte = new Date(query.fromDate)
       }
       if (query.toDate) {
-        where.registrationDate.lte = new Date(query.toDate)
+        (where.registrationDate as { gte?: Date; lte?: Date }).lte = new Date(query.toDate)
       }
     }
 
@@ -81,7 +81,7 @@ export async function GET(
     // If not own profile and not admin, only show registrations for events the current user organizes
     if (!isOwnProfile && userRole !== UserRole.ADMIN) {
       where.event = {
-        ...where.event,
+        ...(where.event as object || {}),
         organizerId: userId
       }
     }
