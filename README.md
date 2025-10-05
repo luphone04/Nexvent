@@ -5,8 +5,14 @@
 - [**Lu Phone Maw**   ](https://github.com/Luphone04)
 
 ---
-### 👥 **Project Repo**
+### **Project Repo**
 - [**Nextvent Project** ](https://github.com/luphone04/Nexvent)
+
+---
+### **Data Models**
+- Users
+- Registrations
+- Events
 
 ---
 ##  **Screenshots**
