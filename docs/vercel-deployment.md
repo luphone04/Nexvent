@@ -17,7 +17,7 @@ Prisma CLI and `tsx` do not automatically load Next.js `.env.local`; export `DAT
 
 ## Hosting configuration
 
-`vercel.json` selects `npm run vercel-build`. That script generates Prisma, applies existing migrations, optionally seeds missing demo records in production when `SEED_DEMO=true`, and builds Next.js. Seeding preserves existing records; it does not reset visitor edits or refresh event dates.
+`vercel.json` selects `npm run vercel-build`. That script generates Prisma, applies existing migrations outside preview builds using the direct Neon connection, optionally seeds missing demo records in production when `SEED_DEMO=true`, and builds Next.js. Seeding preserves existing records; it does not reset visitor edits or refresh event dates.
 
 Required production environment variables:
 
@@ -29,7 +29,7 @@ Required production environment variables:
 
 The owner's generated credentials are stored locally in ignored `.env.owner.local` with owner-only permissions. Do not upload or commit it. Vercel stores production values as sensitive variables. Sensitive values cannot be recovered with `vercel env pull`.
 
-Preview deployments currently use the same demo database by explicit approval. Use a separate Neon branch before testing destructive schema changes. Seed runs only for production. A separate signing secret is configured for previews; Vercel supplies the deployment hostname when `NEXTAUTH_URL` is absent.
+Preview deployments currently use the same demo database by explicit approval. Use a separate Neon branch before testing destructive schema changes. Preview builds skip migrations to avoid competing for locks on the shared database. Seed runs only for production. A separate signing secret is configured for previews; Vercel supplies the deployment hostname when `NEXTAUTH_URL` is absent.
 
 ## Behavior and constraints
 
