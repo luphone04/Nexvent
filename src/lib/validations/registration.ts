@@ -16,8 +16,8 @@ export const updateRegistrationSchema = z.object({
 })
 
 export const registrationQuerySchema = z.object({
-  page: z.string().optional().default("1").transform((val) => parseInt(val, 10)),
-  limit: z.string().optional().default("10").transform((val) => parseInt(val, 10)),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
   status: z.nativeEnum(RegistrationStatus).optional(),
   eventId: z.string().optional(),
   userId: z.string().optional(),
@@ -27,7 +27,7 @@ export const registrationQuerySchema = z.object({
 })
 
 export const checkInSchema = z.object({
-  code: z.string().min(1, "Check-in code is required"),
+  code: z.string().trim().min(1, "Check-in code is required").max(64),
 })
 
 export const bulkRegistrationSchema = z.object({

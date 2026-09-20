@@ -1,3 +1,4 @@
+import { prisma } from '@/lib/db'
 import { AppLayout } from '@/components/layout/app-layout'
 import { RegistrationForm } from '@/components/registration/registration-form'
 import { redirect } from 'next/navigation'
@@ -11,22 +12,11 @@ interface RegisterPageProps {
 }
 
 async function getEvent(eventId: string) {
-  try {
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
-    const response = await fetch(`${baseUrl}/api/events/${eventId}`, {
-      cache: 'no-store',
-    })
-
-    if (!response.ok) {
-      return null
-    }
-
-    const data = await response.json()
-    return data.data
-  } catch (error) {
-    console.error('Error fetching event:', error)
-    return null
-  }
+  const event = await prisma.event.findFirst({
+    where: { id: eventId, status: 'PUBLISHED' },
+    include: { _count: { select: { registrations: { where: { status: { in: ['REGISTERED', 'ATTENDED'] } } } } } },
+  })
+  return event ? { ...event, ticketPrice: Number(event.ticketPrice) } : null
 }
 
 export default async function RegisterPage({ params }: RegisterPageProps) {
@@ -34,7 +24,7 @@ export default async function RegisterPage({ params }: RegisterPageProps) {
   const { id } = await params
 
   // Redirect to login if not authenticated
-  if (!session) {
+  if (!session?.user) {
     redirect(`/auth/signin?callbackUrl=/events/${id}/register`)
   }
 

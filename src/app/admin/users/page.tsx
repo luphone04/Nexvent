@@ -20,18 +20,19 @@ interface User {
 }
 
 export default function AdminUsersPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (status === 'loading') return
     if (session?.user?.role !== 'ADMIN') {
       router.push('/dashboard')
       return
     }
     fetchUsers()
-  }, [session, router])
+  }, [session, status, router])
 
   const fetchUsers = async () => {
     const res = await apiClient.get('/api/admin/users')

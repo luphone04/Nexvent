@@ -131,7 +131,9 @@ export async function GET(
       organization: privacy.showOrganization ? attendee.organization : null,
       bio: privacy.showBio ? attendee.bio : null,
       interests: privacy.showInterests ? attendee.interests : [],
-      privacy: undefined, // Don't expose privacy settings
+      privacy: undefined,
+      registrations: undefined,
+      _count: { organizedEvents: attendee._count.organizedEvents },
       // Show only public organized events for non-owners
       organizedEvents: attendee.organizedEvents.filter(event => event.status === 'PUBLISHED')
     }

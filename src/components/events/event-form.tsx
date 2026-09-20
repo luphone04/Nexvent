@@ -131,7 +131,7 @@ export function EventForm({ eventId, initialData }: EventFormProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Event Time</label>
+          <label className="block text-sm font-medium mb-2">Event Time (UTC)</label>
           <input
             type="time"
             value={formData.eventTime}
@@ -191,7 +191,8 @@ export function EventForm({ eventId, initialData }: EventFormProps) {
           <label className="block text-sm font-medium mb-2">Ticket Price ($)</label>
           <input
             type="number"
-            value={formData.ticketPrice}
+            value={0}
+            disabled
             onChange={(e) => handleChange('ticketPrice', e.target.value === '' ? '' : parseFloat(e.target.value))}
             onBlur={(e) => {
               if (e.target.value === '') handleChange('ticketPrice', 0)

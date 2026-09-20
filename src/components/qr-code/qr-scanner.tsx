@@ -13,7 +13,6 @@ export function QRScanner({ onScanSuccess, onScanError }: QRScannerProps) {
   const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState('')
   const scannerRef = useRef<Html5Qrcode | null>(null)
-  const [cameras, setCameras] = useState<string[]>([])
   const scannerIdRef = useRef<string>('')
   const [isMounted, setIsMounted] = useState(false)
 
@@ -22,19 +21,12 @@ export function QRScanner({ onScanSuccess, onScanError }: QRScannerProps) {
     scannerIdRef.current = 'qr-scanner-' + Math.random()
     setIsMounted(true)
 
-    // Get available cameras
-    Html5Qrcode.getCameras().then(devices => {
-      if (devices && devices.length) {
-        setCameras(devices.map(d => d.id))
-      }
-    }).catch(err => {
-      console.error('Error getting cameras:', err)
-      setError('Unable to access cameras')
-    })
-
     return () => {
-      stopScanning()
+      const scanner = scannerRef.current
+      if (scanner?.isScanning) void scanner.stop().then(() => scanner.clear()).catch(console.error)
+      scannerRef.current = null
     }
+
   }, [])
 
   const startScanning = async () => {
@@ -68,7 +60,7 @@ export function QRScanner({ onScanSuccess, onScanError }: QRScannerProps) {
   }
 
   const stopScanning = async () => {
-    if (scannerRef.current && isScanning) {
+    if (scannerRef.current?.isScanning) {
       try {
         await scannerRef.current.stop()
         scannerRef.current.clear()

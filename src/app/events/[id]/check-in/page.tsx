@@ -1,3 +1,4 @@
+import { prisma } from '@/lib/db'
 import { AppLayout } from '@/components/layout/app-layout'
 import { CheckInView } from '@/components/events/check-in-view'
 import { redirect } from 'next/navigation'
@@ -11,36 +12,17 @@ interface CheckInPageProps {
 }
 
 async function getEvent(eventId: string, userId: string, userRole: string) {
-  try {
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
-    const response = await fetch(`${baseUrl}/api/events/${eventId}`, {
-      cache: 'no-store',
-    })
-
-    if (!response.ok) {
-      return null
-    }
-
-    const data = await response.json()
-    const event = data.data
-
-    // Check if user is organizer or admin
-    if (event.organizerId !== userId && userRole !== 'ADMIN') {
-      return null
-    }
-
-    return event
-  } catch (error) {
-    console.error('Error fetching event:', error)
-    return null
-  }
+  const event = await prisma.event.findFirst({
+    where: { id: eventId, ...(userRole === 'ADMIN' ? {} : { organizerId: userId }) },
+  })
+  return event ? { id: event.id, title: event.title, eventDate: event.eventDate.toISOString(), eventTime: event.eventTime ?? undefined, location: event.location } : null
 }
 
 export default async function CheckInPage({ params }: CheckInPageProps) {
   const session = await getServerSession(authConfig)
   const { id } = await params
 
-  if (!session) {
+  if (!session?.user) {
     redirect(`/auth/signin?callbackUrl=/events/${id}/check-in`)
   }
 

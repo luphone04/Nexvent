@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto'
 import { NextRequest } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
@@ -7,12 +8,7 @@ import { UserRole, RegistrationStatus, EventStatus } from "@prisma/client"
 
 // Generate unique check-in code
 function generateCheckInCode(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-  let result = ''
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return result
+  return randomBytes(8).toString('hex').toUpperCase()
 }
 
 // GET /api/events/[id]/registrations - Get registrations for specific event
@@ -148,8 +144,10 @@ export async function POST(
     const userRole = currentUser.role as UserRole
     const userId = currentUser.id
 
+    return await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM events WHERE id = ${eventId} FOR UPDATE`
     // Check if event exists and user has permission
-    const event = await prisma.event.findUnique({
+    const event = await tx.event.findUnique({
       where: { id: eventId },
       select: {
         id: true,
@@ -189,7 +187,7 @@ export async function POST(
     const validatedData = bulkRegistrationSchema.parse(body)
 
     // Verify all users exist
-    const users = await prisma.user.findMany({
+    const users = await tx.user.findMany({
       where: {
         id: { in: validatedData.userIds }
       },
@@ -201,7 +199,7 @@ export async function POST(
     }
 
     // Check for existing registrations
-    const existingRegistrations = await prisma.registration.findMany({
+    const existingRegistrations = await tx.registration.findMany({
       where: {
         eventId,
         attendeeId: { in: validatedData.userIds }
@@ -223,7 +221,7 @@ export async function POST(
     // Get next waitlist position if needed
     let nextWaitlistPosition = 0
     if (toWaitlist.length > 0) {
-      const lastWaitlisted = await prisma.registration.findFirst({
+      const lastWaitlisted = await tx.registration.findFirst({
         where: {
           eventId,
           status: RegistrationStatus.WAITLISTED
@@ -234,10 +232,10 @@ export async function POST(
     }
 
     // Create all registrations
-    const registrations = await prisma.$transaction(
+    const registrations = await Promise.all(
       validatedData.userIds.map((userId, index) => {
         const isWaitlisted = index >= availableSpots
-        return prisma.registration.create({
+        return tx.registration.create({
           data: {
             attendeeId: userId,
             eventId,
@@ -271,6 +269,8 @@ export async function POST(
       waitlisted: waitlisted.length,
       registrations
     }, `Bulk registration completed: ${registered.length} registered, ${waitlisted.length} waitlisted`)
+
+    })
 
   } catch (error) {
     return handleError(error)

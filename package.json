@@ -9,12 +9,13 @@
     "lint": "eslint",
     "test:api": "node scripts/test-api.js",
     "test:api:full": "node tests/api-test-suite.js",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts",
+    "postinstall": "prisma generate",
+    "vercel-build": "node scripts/vercel-build.mjs"
   },
   "dependencies": {
-    "@auth/prisma-adapter": "^2.10.0",
     "@hookform/resolvers": "^5.2.1",
-    "@prisma/client": "^6.15.0",
+    "@prisma/client": "^6.19.3",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@types/bcryptjs": "^2.4.6",
@@ -24,13 +25,14 @@
     "clsx": "^2.1.1",
     "html5-qrcode": "^2.3.8",
     "lucide-react": "^0.542.0",
-    "next": "15.5.2",
-    "next-auth": "^4.24.11",
+    "next": "^15.5.25",
+    "next-auth": "^4.24.15",
     "prisma": "^6.15.0",
     "qrcode": "^1.5.4",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "react-hook-form": "^7.62.0",
+    "sharp": "^0.35.4",
     "tailwind-merge": "^3.3.1",
     "zod": "^4.1.4"
   },
@@ -41,11 +43,18 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.5.2",
+    "eslint-config-next": "^15.5.25",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
     "tw-animate-css": "^1.3.7",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "overrides": {
+    "postcss": "8.5.28",
+    "deepmerge-ts": "8.0.2"
   }
 }

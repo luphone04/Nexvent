@@ -9,7 +9,7 @@ interface SessionProviderProps {
 
 export function SessionProvider({ children }: SessionProviderProps) {
   return (
-    <NextAuthSessionProvider basePath="/nexvent/api/auth">
+    <NextAuthSessionProvider>
       {children}
     </NextAuthSessionProvider>
   )

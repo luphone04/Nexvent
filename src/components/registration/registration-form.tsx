@@ -86,7 +86,7 @@ export function RegistrationForm({ event }: RegistrationFormProps) {
       const response = await apiClient.post('/api/registrations', {
         eventId: event.id,
         attendeeId: session.user.id,
-        specialRequirements: requirements.length > 0 ? requirements.join(' | ') : null,
+        specialRequirements: requirements.length > 0 ? requirements.join(' | ') : undefined,
       })
 
       const data = await response.json()
@@ -235,7 +235,7 @@ export function RegistrationForm({ event }: RegistrationFormProps) {
               <h3 className="font-semibold mb-2">Event Details</h3>
               <p className="text-lg font-medium">{event.title}</p>
               <p className="text-gray-600">
-                {new Date(event.eventDate).toLocaleDateString('en-US', {
+                {new Date(event.eventDate).toLocaleDateString('en-US', { timeZone: 'UTC',
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
@@ -319,7 +319,7 @@ export function RegistrationForm({ event }: RegistrationFormProps) {
                   Total Amount: <span className="text-xl font-bold">${ticketPrice.toFixed(2)}</span>
                 </p>
                 <p className="text-sm text-gray-600 mt-2">
-                  Payment will be processed upon confirmation.
+                  Payments are not enabled in this portfolio demo.
                 </p>
               </div>
             ) : (
@@ -329,7 +329,7 @@ export function RegistrationForm({ event }: RegistrationFormProps) {
             )}
 
             <div className="text-sm text-gray-600 space-y-1">
-              <p>• You will receive a confirmation email with your QR code</p>
+              <p>• Your QR ticket will appear on the confirmation page</p>
               <p>• Your QR code will be required for event check-in</p>
               <p>• Cancellation policy applies as per event terms</p>
             </div>

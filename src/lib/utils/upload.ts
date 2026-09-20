@@ -1,5 +1,4 @@
-import { writeFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
+import sharp from 'sharp'
 import path from 'path'
 import { NextRequest } from 'next/server'
 
@@ -9,54 +8,24 @@ export interface UploadResult {
   error?: string
 }
 
+// Small, re-encoded avatars live in PostgreSQL as data URLs. No local disk or
+// separate paid object storage is required by the portfolio deployment.
 export async function uploadProfileImage(request: NextRequest): Promise<UploadResult> {
   try {
     const formData = await request.formData()
-    const file = formData.get('avatar') as File
-
-    if (!file) {
-      return { success: false, error: "No file provided" }
+    const file = formData.get('avatar')
+    if (!(file instanceof File) || !isValidImageType(file.type)) {
+      return { success: false, error: 'Choose a JPEG, PNG, or WebP image' }
     }
-
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-    if (!allowedTypes.includes(file.type)) {
-      return { success: false, error: "Invalid file type. Only JPEG, PNG, and WebP are allowed" }
+    if (file.size > 2 * 1024 * 1024) {
+      return { success: false, error: 'Maximum image size is 2MB' }
     }
-
-    // Validate file size (5MB max)
-    const maxSize = 5 * 1024 * 1024 // 5MB
-    if (file.size > maxSize) {
-      return { success: false, error: "File too large. Maximum size is 5MB" }
-    }
-
-    // Create upload directory if it doesn't exist
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'avatars')
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true })
-    }
-
-    // Generate unique filename
-    const timestamp = Date.now()
-    const randomString = Math.random().toString(36).substring(2)
-    const extension = path.extname(file.name)
-    const filename = `avatar_${timestamp}_${randomString}${extension}`
-
-    // Convert file to buffer and save
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-
-    const filepath = path.join(uploadDir, filename)
-    await writeFile(filepath, buffer)
-
-    // Return public URL
-    const publicUrl = `/uploads/avatars/${filename}`
-    
-    return { success: true, url: publicUrl }
-
-  } catch (error) {
-    console.error('Upload error:', error)
-    return { success: false, error: "Failed to upload file" }
+    const image = await sharp(Buffer.from(await file.arrayBuffer()), { limitInputPixels: 16000000 })
+      .rotate().resize(256, 256, { fit: 'cover' }).webp({ quality: 75 }).toBuffer()
+    if (image.length > 50000) return { success: false, error: 'Image is too complex; choose a simpler image' }
+    return { success: true, url: `data:image/webp;base64,${image.toString('base64')}` }
+  } catch {
+    return { success: false, error: 'Unable to read this image' }
   }
 }
 

@@ -11,23 +11,23 @@ export async function ensureAdminExists() {
       }
     })
 
-    if (adminCount === 0) {
+    if (adminCount === 0 && process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD && process.env.ADMIN_PASSWORD.length >= 16) {
       console.log("No admin users found. Creating default admin...")
       
       // Create a default admin user
-      const hashedPassword = await bcrypt.hash("admin123", 12)
+      const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD!, 12)
       
       const adminUser = await prisma.user.create({
         data: {
           name: "System Administrator",
-          email: "admin@nexvent.local",
+          email: process.env.ADMIN_EMAIL.toLowerCase(),
           password: hashedPassword,
           role: UserRole.ADMIN,
         }
       })
 
       console.log(`Created default admin user: ${adminUser.email}`)
-      console.log("Default password: admin123 (Please change this in production!)")
+
       
       return adminUser
     }

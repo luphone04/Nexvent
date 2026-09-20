@@ -34,7 +34,7 @@ export function RegistrationList() {
 
     const fetchRegistrations = async () => {
       try {
-        const response = await apiClient.get(`/api/attendees/${session.user.id}/registrations`)
+        const response = await apiClient.get(`/api/attendees/${session.user.id}/registrations?includeExpired=true&limit=100`)
         const data = await response.json()
 
         if (!response.ok) {
@@ -91,7 +91,7 @@ export function RegistrationList() {
   const formatPrice = (price?: number | string) => {
     if (!price || price === 0) return 'Free'
     const numPrice = typeof price === 'string' ? parseFloat(price) : price
-    if (isNaN(numPrice)) return 'Free'
+    if (!Number.isFinite(numPrice) || numPrice === 0) return 'Free'
     return `$${numPrice.toFixed(2)}`
   }
 
@@ -232,13 +232,13 @@ export function RegistrationList() {
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        {eventDate.toLocaleDateString('en-US', {
+                        {eventDate.toLocaleDateString('en-US', { timeZone: 'UTC',
                           weekday: 'long',
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric',
                         })}
-                        {registration.event.eventTime && ` at ${registration.event.eventTime}`}
+                        {registration.event.eventTime && ` at ${registration.event.eventTime} UTC`}
                       </div>
                       <div className="flex items-center">
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
