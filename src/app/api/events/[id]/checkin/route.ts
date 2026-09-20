@@ -42,9 +42,8 @@ export async function POST(
       return errorResponse("You don't have permission to check in attendees for this event", 403, "FORBIDDEN")
     }
 
-    const hours = (event.eventDate.getTime() - Date.now()) / 3600000
-    if (event.status !== 'PUBLISHED' || hours > 24 || hours < -24) {
-      return errorResponse("Check-in is unavailable for this event", 400, "CHECKIN_CLOSED")
+    if (event.status !== 'PUBLISHED') {
+      return errorResponse("Check-in requires a published event", 400, "CHECKIN_CLOSED")
     }
     const body = await request.json()
     const { code } = checkInSchema.parse(body)

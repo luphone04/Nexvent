@@ -34,7 +34,7 @@ Preview deployments currently use the same demo database by explicit approval. U
 ## Behavior and constraints
 
 - The app runs at `/`; old `/nexvent/*` paths redirect to their root equivalents.
-- Event form times are UTC. Check-in opens 24 hours before the event and closes 24 hours after the start because this schema has no end timestamp.
+- Event form times are UTC. Organizers can check in valid tickets for published events at any time, so upcoming events can be demonstrated. Cancelled and unpublished events remain blocked.
 - Public demo accounts are shared. Use fictional information only. Private admin access is separate.
 - All newly created events are free. Email delivery and payment processing are intentionally disabled, and the UI makes this explicit.
 - Avatars accept JPEG/PNG/WebP up to 2MB and are decoded, resized to 256×256, and re-encoded as WebP up to 50KB. They persist in PostgreSQL instead of Vercel's ephemeral filesystem.

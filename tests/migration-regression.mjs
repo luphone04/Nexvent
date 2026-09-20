@@ -44,7 +44,7 @@ try {
  await test('Register server page loads event',async()=>{const r=await req(`/events/${event.id}/register`,a.cookie);assert.equal(r.status,200);assert(!r.data.includes('Event Not Found'))})
  await test('Organizer check-in page loads event',async()=>{const r=await req(`/events/${event.id}/check-in`,org.cookie);assert.equal(r.status,200);assert(!r.data.includes('Event not found or'))})
  await test('Cancellation promotes waitlist',async()=>{assert.equal((await req(`/api/registrations/${reg.id}`,attendee.cookie,'DELETE')).status,200);assert.equal((await db.registration.findUnique({where:{id:waiter.id}})).status,'REGISTERED')})
- await db.event.update({where:{id:event.id},data:{eventDate:new Date(Date.now()+3600000)}})
+ // Keep the event a week in the future to verify demonstration check-in.
  const qrData=JSON.stringify({registrationId:waiter.id,checkInCode:waiter.checkInCode})
  await test('QR cannot check in to wrong event',async()=>assert.equal((await req('/api/registrations/check-in',org.cookie,'POST',{qrData,eventId:'wrong'})).status,400))
  await test('Valid QR check-in records attendance',async()=>{const r=await req('/api/registrations/check-in',org.cookie,'POST',{qrData,eventId:event.id});assert.equal(r.status,200);assert.equal(r.data.data.status,'ATTENDED')})

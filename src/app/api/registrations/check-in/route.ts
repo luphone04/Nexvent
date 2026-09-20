@@ -67,9 +67,8 @@ export async function POST(request: NextRequest) {
     if (!eventId || eventId !== registration.event.id) {
       return errorResponse("Ticket does not belong to this event", 400, "WRONG_EVENT")
     }
-    const hours = (registration.event.eventDate.getTime() - Date.now()) / 3600000
-    if (registration.event.status !== 'PUBLISHED' || hours > 24 || hours < -24) {
-      return errorResponse("Check-in is unavailable for this event", 400, "CHECKIN_CLOSED")
+    if (registration.event.status !== 'PUBLISHED') {
+      return errorResponse("Check-in requires a published event", 400, "CHECKIN_CLOSED")
     }
 
     // Verify check-in code matches

@@ -133,17 +133,6 @@ export async function POST(request: NextRequest) {
     const hoursUntilEvent = (eventDateTime.getTime() - now.getTime()) / (1000 * 60 * 60)
     const eventHasPassed = hoursUntilEvent < -24
 
-    if (eventHasPassed) {
-      valid = false
-      reasons.push("EVENT_ENDED")
-      message = "Event has already ended"
-    } else if (hoursUntilEvent > 24) {
-      // Allow check-in up to 24 hours before event
-      valid = false
-      reasons.push("TOO_EARLY")
-      message = `Check-in opens 24 hours before event (${Math.round(hoursUntilEvent)} hours remaining)`
-    }
-
     // If still valid, set success message
     if (valid) {
       message = `Ready to check in: ${registration.attendee.name}`
