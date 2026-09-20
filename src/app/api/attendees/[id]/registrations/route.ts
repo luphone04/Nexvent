@@ -157,7 +157,7 @@ export async function GET(
     // Add summary statistics for the attendee
     const summary = await prisma.registration.groupBy({
       by: ['status'],
-      where: { attendeeId: attendeeId },
+      where: { attendeeId, ...(!isOwnProfile && userRole !== UserRole.ADMIN ? { event: { organizerId: userId } } : {}) },
       _count: {
         status: true
       }

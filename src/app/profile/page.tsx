@@ -1,3 +1,4 @@
+import { ProfileForm } from '@/components/profile-form'
 import { AppLayout } from "@/components/layout/app-layout"
 
 export default function ProfilePage() {
@@ -11,10 +12,7 @@ export default function ProfilePage() {
           </p>
         </div>
 
-        {/* Profile content will be loaded here */}
-        <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-          <p>Profile management will be implemented in the next phase.</p>
-        </div>
+        <ProfileForm />
       </div>
     </AppLayout>
   )

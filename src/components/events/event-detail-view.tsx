@@ -42,7 +42,7 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
   const [event, setEvent] = useState<Event | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [userRegistration, setUserRegistration] = useState<any>(null)
+  const [userRegistration, setUserRegistration] = useState<{ id: string; status: string; event: { id: string } } | null>(null)
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -71,11 +71,11 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
       if (!session) return
 
       try {
-        const response = await apiClient.get(`/api/registrations?eventId=${eventId}`)
+        const response = await apiClient.get(`/api/registrations?eventId=${eventId}&userId=${session.user.id}&includeExpired=true`)
         if (response.ok) {
           const data = await response.json()
           // Find active registration for this event (not CANCELLED)
-          const registration = data.data.find((reg: any) =>
+          const registration = data.data.find((reg: { id: string; status: string; event: { id: string } }) =>
             reg.event.id === eventId &&
             (reg.status === 'REGISTERED' || reg.status === 'WAITLISTED' || reg.status === 'ATTENDED')
           )
@@ -92,7 +92,7 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
   }, [eventId, session])
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-US', { timeZone: 'UTC',
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -103,7 +103,7 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
   const formatPrice = (price?: number | string) => {
     if (!price || price === 0) return 'Free'
     const numPrice = typeof price === 'string' ? parseFloat(price) : price
-    if (isNaN(numPrice)) return 'Free'
+    if (!Number.isFinite(numPrice) || numPrice === 0) return 'Free'
     return `$${numPrice.toFixed(2)}`
   }
 
@@ -130,7 +130,7 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
     if (!confirm(confirmMsg)) return
 
     try {
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         status: newStatus,
         title: event.title,
         description: event.description,
@@ -195,7 +195,6 @@ export function EventDetailView({ eventId }: EventDetailViewProps) {
   const capacityStatus = getCapacityStatus()
   const eventPassed = new Date(event.eventDate) < new Date()
   const canRegister = !eventPassed && event.status === 'PUBLISHED' &&
-                     (!event.capacity || event._count.registrations < event.capacity) &&
                      !userRegistration  // Can't register if already registered
 
   return (

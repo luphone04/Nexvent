@@ -1,7 +1,7 @@
 import { z } from "zod"
 import { EventCategory, EventStatus } from "@prisma/client"
 
-export const createEventSchema = z.object({
+const eventFields = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title too long"),
   description: z.string().optional(),
   eventDate: z.string().datetime("Invalid date format"),
@@ -9,16 +9,20 @@ export const createEventSchema = z.object({
   location: z.string().min(1, "Location is required").max(200, "Location too long"),
   capacity: z.number().int().min(1, "Capacity must be at least 1"),
   category: z.nativeEnum(EventCategory, { message: "Invalid category" }),
-  ticketPrice: z.number().min(0, "Price cannot be negative").default(0),
+  ticketPrice: z.number().min(0).max(0, "Portfolio events are free; payments are not enabled"),
   imageUrl: z.string().url("Invalid image URL").optional(),
-  status: z.nativeEnum(EventStatus, { message: "Invalid status" }).default(EventStatus.DRAFT),
+  status: z.nativeEnum(EventStatus, { message: "Invalid status" }),
 })
 
-export const updateEventSchema = createEventSchema.partial()
+export const createEventSchema = eventFields.extend({
+  ticketPrice: eventFields.shape.ticketPrice.default(0),
+  status: eventFields.shape.status.default(EventStatus.DRAFT),
+})
+export const updateEventSchema = eventFields.partial()
 
 export const eventQuerySchema = z.object({
-  page: z.string().optional().default("1").transform((val) => parseInt(val, 10)),
-  limit: z.string().optional().default("10").transform((val) => parseInt(val, 10)),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
   category: z.nativeEnum(EventCategory).optional(),
   location: z.string().optional(),
   dateFrom: z.string().datetime().optional(),

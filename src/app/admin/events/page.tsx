@@ -25,18 +25,19 @@ interface Event {
 }
 
 export default function AdminEventsPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (status === 'loading') return
     if (session?.user?.role !== 'ADMIN') {
       router.push('/dashboard')
       return
     }
     fetchEvents()
-  }, [session, router])
+  }, [session, status, router])
 
   const fetchEvents = async () => {
     const res = await apiClient.get('/api/events?limit=100')

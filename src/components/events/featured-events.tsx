@@ -52,7 +52,7 @@ export function FeaturedEvents() {
   }, [])
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-US', { timeZone: 'UTC',
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -62,7 +62,7 @@ export function FeaturedEvents() {
   const formatPrice = (price?: number | string) => {
     if (!price || price === 0) return 'Free'
     const numPrice = typeof price === 'string' ? parseFloat(price) : price
-    if (isNaN(numPrice)) return 'Free'
+    if (!Number.isFinite(numPrice) || numPrice === 0) return 'Free'
     return `$${numPrice.toFixed(2)}`
   }
 
@@ -151,7 +151,7 @@ export function FeaturedEvents() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0V9a2 2 0 012-2h4a2 2 0 012 2v4M6 7h12a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2z" />
                     </svg>
                     <span>{formatDate(event.eventDate)}</span>
-                    {event.eventTime && <span className="ml-1">at {event.eventTime}</span>}
+                    {event.eventTime && <span className="ml-1">at {event.eventTime} UTC</span>}
                   </div>
                   
                   <div className="flex items-center">

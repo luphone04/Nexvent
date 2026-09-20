@@ -42,6 +42,10 @@ export async function POST(
       return errorResponse("You don't have permission to check in attendees for this event", 403, "FORBIDDEN")
     }
 
+    const hours = (event.eventDate.getTime() - Date.now()) / 3600000
+    if (event.status !== 'PUBLISHED' || hours > 24 || hours < -24) {
+      return errorResponse("Check-in is unavailable for this event", 400, "CHECKIN_CLOSED")
+    }
     const body = await request.json()
     const { code } = checkInSchema.parse(body)
 
@@ -49,7 +53,7 @@ export async function POST(
     const registration = await prisma.registration.findFirst({
       where: {
         eventId,
-        checkInCode: code.toUpperCase()
+        checkInCode: { equals: code.trim(), mode: 'insensitive' }
       },
       select: {
         id: true,
@@ -89,7 +93,7 @@ export async function POST(
     // Update registration status to attended
     const updatedRegistration = await prisma.registration.update({
       where: { id: registration.id },
-      data: { status: RegistrationStatus.ATTENDED },
+      data: { status: RegistrationStatus.ATTENDED, checkInTime: new Date() },
       select: {
         id: true,
         status: true,

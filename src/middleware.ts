@@ -25,23 +25,6 @@ export default withAuth(
       )
     }
 
-    // Role-based access control
-    const userRole = token?.role as string
-    const pathname = req.nextUrl.pathname
-
-    // Admin-only routes
-    if (pathname.startsWith("/admin") && userRole !== "ADMIN") {
-      return NextResponse.redirect(new URL("/unauthorized", req.url))
-    }
-
-    // Organizer-only routes (also allow admin)
-    if (
-      pathname.startsWith("/dashboard") &&
-      !["ORGANIZER", "ADMIN"].includes(userRole)
-    ) {
-      return NextResponse.redirect(new URL("/events", req.url))
-    }
-
     return NextResponse.next()
   },
   {

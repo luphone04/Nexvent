@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto'
 import { NextRequest } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
@@ -15,12 +16,7 @@ import { UserRole, EventStatus, RegistrationStatus } from "@prisma/client"
 
 // Generate unique check-in code
 function generateCheckInCode(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-  let result = ''
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return result
+  return randomBytes(8).toString('hex').toUpperCase()
 }
 
 // GET /api/registrations - List registrations with filtering
@@ -167,8 +163,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = createRegistrationSchema.parse(body)
 
+    return await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM events WHERE id = ${validatedData.eventId} FOR UPDATE`
     // Check if event exists and is published
-    const event = await prisma.event.findUnique({
+    const event = await tx.event.findUnique({
       where: { id: validatedData.eventId },
       select: {
         id: true,
@@ -205,7 +203,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user has any existing registration
-    const existingRegistration = await prisma.registration.findFirst({
+    const existingRegistration = await tx.registration.findFirst({
       where: {
         eventId: validatedData.eventId,
         attendeeId: userId
@@ -226,7 +224,7 @@ export async function POST(request: NextRequest) {
 
     // If user has a cancelled registration, delete it first to allow re-registration
     if (existingRegistration && existingRegistration.status === RegistrationStatus.CANCELLED) {
-      await prisma.registration.delete({
+      await tx.registration.delete({
         where: { id: existingRegistration.id }
       })
     }
@@ -238,7 +236,7 @@ export async function POST(request: NextRequest) {
 
     if (event.capacity && currentRegistrations >= event.capacity) {
       // Get next waitlist position
-      const lastWaitlistRegistration = await prisma.registration.findFirst({
+      const lastWaitlistRegistration = await tx.registration.findFirst({
         where: {
           eventId: validatedData.eventId,
           status: RegistrationStatus.WAITLISTED
@@ -253,7 +251,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create registration
-    const registration = await prisma.registration.create({
+    const registration = await tx.registration.create({
       data: {
         attendeeId: userId,
         eventId: validatedData.eventId,
@@ -300,6 +298,8 @@ export async function POST(request: NextRequest) {
       : `Added to waitlist at position ${waitlistPosition}`
 
     return successResponse(registration, message)
+
+    })
 
   } catch (error) {
     return handleError(error)

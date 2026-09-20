@@ -65,7 +65,7 @@ export function AttendeeDashboard() {
   }, [session])
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-US', { timeZone: 'UTC',
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -204,7 +204,7 @@ export function AttendeeDashboard() {
                     </div>
                     <p className="text-sm text-gray-500">
                       {formatDate(registration.event.eventDate)}
-                      {registration.event.eventTime && ` at ${registration.event.eventTime}`}
+                      {registration.event.eventTime && ` at ${registration.event.eventTime} UTC`}
                     </p>
                     <p className="text-sm text-gray-500">{registration.event.location}</p>
                   </div>
@@ -266,7 +266,7 @@ export function AttendeeDashboard() {
                     </div>
                     <p className="text-sm text-gray-500">
                       {formatDate(registration.event.eventDate)}
-                      {registration.event.eventTime && ` at ${registration.event.eventTime}`}
+                      {registration.event.eventTime && ` at ${registration.event.eventTime} UTC`}
                     </p>
                     <p className="text-sm text-gray-500">{registration.event.location}</p>
                     {registration.checkInTime && (

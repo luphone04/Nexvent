@@ -1,13 +1,10 @@
 import { NextAuthOptions } from "next-auth"
-import { PrismaAdapter } from "@auth/prisma-adapter"
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/db"
 import { UserRole } from "@prisma/client"
 
 export const authConfig: NextAuthOptions = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  adapter: PrismaAdapter(prisma) as any, // Required for Next-Auth adapter compatibility
   session: {
     strategy: "jwt",
   },
@@ -43,12 +40,20 @@ export const authConfig: NextAuthOptions = {
           throw new Error("Email and password are required")
         }
 
+        credentials.email = credentials.email.trim().toLowerCase()
+        if (credentials.email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(credentials.email) || credentials.password.length > 72) {
+          throw new Error("Invalid email or password")
+        }
+
         // Handle Sign Up
         if (credentials.isSignUp === "true") {
           if (!credentials.name) {
             throw new Error("Name is required for sign up")
           }
 
+          if (credentials.password.length < 8 || credentials.name.trim().length > 100) {
+            throw new Error("Use a password of at least 8 characters and a name under 100 characters")
+          }
           // Check if user already exists
           const existingUser = await prisma.user.findUnique({
             where: { email: credentials.email }
@@ -61,14 +66,7 @@ export const authConfig: NextAuthOptions = {
           // Hash password
           const hashedPassword = await bcrypt.hash(credentials.password, 12)
 
-          // Check if this is the first user (should become admin)
-          const userCount = await prisma.user.count()
-          const isFirstUser = userCount === 0
-
-          // Determine role: first user is admin, otherwise use selected role (default to ATTENDEE)
-          const userRole = isFirstUser
-            ? UserRole.ADMIN
-            : (credentials.role === 'ORGANIZER' ? UserRole.ORGANIZER : UserRole.ATTENDEE)
+          const userRole = credentials.role === 'ORGANIZER' ? UserRole.ORGANIZER : UserRole.ATTENDEE
 
           // Create user
           const user = await prisma.user.create({
@@ -126,9 +124,15 @@ export const authConfig: NextAuthOptions = {
       return token
     },
     async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.id as string
-        session.user.role = token.role as UserRole
+      const current = token.id ? await prisma.user.findUnique({
+        where: { id: token.id as string },
+        select: { id: true, role: true, name: true, email: true, image: true },
+      }) : null
+      if (current) {
+        session.user = current
+      } else {
+        // A deleted account must not retain access through an existing JWT.
+        Reflect.deleteProperty(session, 'user')
       }
       return session
     }

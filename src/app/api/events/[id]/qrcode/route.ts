@@ -1,3 +1,4 @@
+import { getCurrentUser } from '@/lib/auth'
 import { NextRequest } from "next/server"
 import { prisma } from "@/lib/db"
 import { successResponse, errorResponse, handleError } from "@/lib/utils/api"
@@ -48,6 +49,11 @@ export async function GET(
     })
 
     if (!event) {
+      return errorResponse("Event not found", 404, "NOT_FOUND")
+    }
+
+    const viewer = await getCurrentUser()
+    if (event.status !== 'PUBLISHED' && viewer?.role !== 'ADMIN' && viewer?.id !== event.organizerId) {
       return errorResponse("Event not found", 404, "NOT_FOUND")
     }
 

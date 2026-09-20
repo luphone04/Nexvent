@@ -29,6 +29,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <SessionProvider>
+          <div className="bg-blue-950 px-4 py-2 text-center text-xs text-white">Portfolio demo · Fictional events · Free tickets · No payments or email delivery</div>
           {children}
         </SessionProvider>
       </body>

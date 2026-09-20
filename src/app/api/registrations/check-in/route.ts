@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { qrData } = body
+    const { qrData, eventId } = body
 
     // Parse QR code data
     let parsedData
@@ -46,7 +46,8 @@ export async function POST(request: NextRequest) {
             id: true,
             title: true,
             eventDate: true,
-            organizerId: true
+            organizerId: true,
+            status: true
           }
         },
         attendee: {
@@ -61,6 +62,14 @@ export async function POST(request: NextRequest) {
 
     if (!registration) {
       return errorResponse("Registration not found", 404, "NOT_FOUND")
+    }
+
+    if (!eventId || eventId !== registration.event.id) {
+      return errorResponse("Ticket does not belong to this event", 400, "WRONG_EVENT")
+    }
+    const hours = (registration.event.eventDate.getTime() - Date.now()) / 3600000
+    if (registration.event.status !== 'PUBLISHED' || hours > 24 || hours < -24) {
+      return errorResponse("Check-in is unavailable for this event", 400, "CHECKIN_CLOSED")
     }
 
     // Verify check-in code matches

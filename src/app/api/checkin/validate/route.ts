@@ -6,7 +6,7 @@ import { successResponse, errorResponse, handleError } from "@/lib/utils/api"
 import { UserRole, RegistrationStatus } from "@prisma/client"
 
 const validateCheckInSchema = z.object({
-  code: z.string().min(1, "Check-in code is required").max(10, "Invalid code format"),
+  code: z.string().min(1, "Check-in code is required").max(64, "Invalid code format"),
   eventId: z.string().min(1, "Event ID is required").optional(),
 })
 
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     // Build where clause
     const where: Record<string, unknown> = {
-      checkInCode: code.toUpperCase()
+      checkInCode: { equals: code.trim(), mode: 'insensitive' }
     }
 
     if (eventId) {
@@ -128,10 +128,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Check event timing
-    const eventDateTime = new Date(`${registration.event.eventDate.toISOString().split('T')[0]}T${registration.event.eventTime || '00:00'}`)
+    const eventDateTime = registration.event.eventDate
     const now = new Date()
     const hoursUntilEvent = (eventDateTime.getTime() - now.getTime()) / (1000 * 60 * 60)
-    const eventHasPassed = now > eventDateTime
+    const eventHasPassed = hoursUntilEvent < -24
 
     if (eventHasPassed) {
       valid = false
@@ -192,7 +192,7 @@ export async function GET(request: NextRequest) {
 
     // Convert to POST data format and call POST handler
     const mockRequest = {
-      json: async () => ({ code, eventId })
+      json: async () => ({ code, eventId: eventId ?? undefined })
     } as NextRequest
 
     return POST(mockRequest)

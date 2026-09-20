@@ -18,13 +18,17 @@ export async function PUT(
 
     const { role } = await request.json()
 
-    if (!['ATTENDEE', 'ORGANIZER'].includes(role)) {
+    if (!['ATTENDEE', 'ORGANIZER', 'ADMIN'].includes(role)) {
       return errorResponse('Invalid role', 400, 'INVALID_ROLE')
     }
 
+    if (id === user.id && role !== 'ADMIN') {
+      return errorResponse('You cannot remove your own admin access', 400, 'SELF_DEMOTION')
+    }
     const updatedUser = await prisma.user.update({
       where: { id },
-      data: { role }
+      data: { role },
+      select: { id: true, name: true, email: true, role: true }
     })
 
     return successResponse(updatedUser, 'User role updated successfully')

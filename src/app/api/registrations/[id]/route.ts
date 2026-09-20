@@ -104,8 +104,12 @@ export async function PUT(
     const userRole = currentUser.role as UserRole
     const userId = currentUser.id
 
+    return await prisma.$transaction(async (tx) => {
+      const target = await tx.registration.findUnique({ where: { id }, select: { eventId: true } })
+      if (!target) return errorResponse('Registration not found', 404, 'NOT_FOUND')
+      await tx.$queryRaw`SELECT id FROM events WHERE id = ${target.eventId} FOR UPDATE`
     // Get existing registration
-    const existingRegistration = await prisma.registration.findUnique({
+    const existingRegistration = await tx.registration.findUnique({
       where: { id },
       select: {
         id: true,
@@ -129,7 +133,7 @@ export async function PUT(
     // Check permissions
     const canUpdate = userRole === UserRole.ADMIN || 
                      existingRegistration.event.organizerId === userId ||
-                     (existingRegistration.attendeeId === userId && userRole !== UserRole.ATTENDEE) // Attendees can only update notes
+                     existingRegistration.attendeeId === userId
 
     if (!canUpdate) {
       return errorResponse("You don't have permission to update this registration", 403, "FORBIDDEN")
@@ -139,7 +143,7 @@ export async function PUT(
     const validatedData = updateRegistrationSchema.parse(body)
 
     // Restrict attendees to only updating notes
-    if (userRole === UserRole.ATTENDEE && existingRegistration.attendeeId === userId) {
+    if (userRole !== UserRole.ADMIN && existingRegistration.event.organizerId !== userId) {
       if (validatedData.status !== undefined) {
         return errorResponse("Attendees cannot change registration status", 403, "FORBIDDEN")
       }
@@ -150,9 +154,14 @@ export async function PUT(
       return errorResponse("Cannot update registration for past events", 400, "EVENT_EXPIRED")
     }
 
-    const updatedRegistration = await prisma.registration.update({
+    if (validatedData.status === 'REGISTERED' && existingRegistration.status !== 'REGISTERED' && existingRegistration.status !== 'ATTENDED') {
+      const event = await tx.event.findUniqueOrThrow({ where: { id: existingRegistration.event.id } })
+      const occupied = await tx.registration.count({ where: { eventId: event.id, status: { in: ['REGISTERED', 'ATTENDED'] } } })
+      if (occupied >= event.capacity) return errorResponse('Event is at capacity', 409, 'EVENT_FULL')
+    }
+    const updatedRegistration = await tx.registration.update({
       where: { id },
-      data: validatedData,
+      data: { status: validatedData.status, specialRequirements: validatedData.notes },
       select: {
         id: true,
         status: true,
@@ -187,6 +196,8 @@ export async function PUT(
 
     return successResponse(updatedRegistration, "Registration updated successfully")
 
+    })
+
   } catch (error) {
     return handleError(error)
   }
@@ -208,8 +219,12 @@ export async function DELETE(
     const userRole = currentUser.role as UserRole
     const userId = currentUser.id
 
+    return await prisma.$transaction(async (tx) => {
+      const target = await tx.registration.findUnique({ where: { id }, select: { eventId: true } })
+      if (!target) return errorResponse('Registration not found', 404, 'NOT_FOUND')
+      await tx.$queryRaw`SELECT id FROM events WHERE id = ${target.eventId} FOR UPDATE`
     // Get registration with event details
-    const registration = await prisma.registration.findUnique({
+    const registration = await tx.registration.findUnique({
       where: { id },
       select: {
         id: true,
@@ -271,7 +286,7 @@ export async function DELETE(
     }
 
     // Use transaction to handle cancellation and waitlist promotion
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await (async () => {
       // Cancel the registration
       const cancelledRegistration = await tx.registration.update({
         where: { id },
@@ -320,9 +335,11 @@ export async function DELETE(
       }
 
       return cancelledRegistration
-    })
+    })()
 
     return successResponse({ id: result.id }, "Registration cancelled successfully")
+
+    })
 
   } catch (error) {
     return handleError(error)

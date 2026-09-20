@@ -35,6 +35,13 @@ export default function SignInPage() {
         const session = await getSession()
         const userRole = session?.user?.role as string
         
+        const query = new URLSearchParams(window.location.search)
+        const destination = query.get('callbackUrl') || query.get('from')
+        if (destination?.startsWith('/') && !destination.startsWith('//') && !destination.includes('\\')) {
+          router.push(destination)
+          router.refresh()
+          return
+        }
         // Redirect based on role
         if (userRole === "ADMIN" || userRole === "ORGANIZER") {
           router.push("/dashboard")
@@ -91,6 +98,13 @@ export default function SignInPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
+            <div className="rounded border bg-blue-50 p-3 text-sm text-gray-700">
+              <p className="font-medium">Explore the portfolio demo</p>
+              <p>Attendee: attendee@nexvent.example</p>
+              <p>Organizer: organizer@nexvent.example</p>
+              <p>Password: NexventDemo2026!</p>
+              <p className="mt-1 text-xs">Shared demo accounts. Please use fictional information.</p>
+            </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>

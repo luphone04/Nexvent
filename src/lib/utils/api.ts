@@ -60,7 +60,7 @@ export function handleError(error: unknown): NextResponse<ApiResponse> {
   }
 
   if (error instanceof Error) {
-    return errorResponse(error.message, 500, "INTERNAL_ERROR")
+    return errorResponse("Unable to complete the request", 500, "INTERNAL_ERROR")
   }
 
   return errorResponse("An unexpected error occurred", 500, "UNKNOWN_ERROR")

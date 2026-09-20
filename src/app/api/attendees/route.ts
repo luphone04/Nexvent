@@ -64,8 +64,7 @@ export async function GET(request: NextRequest) {
 
     // Privacy filtering - only show users who allow search
     if (!query.includePrivate || !currentUser || currentUser.role !== UserRole.ADMIN) {
-      // For now, we'll implement privacy in the response filtering
-      // Later we can add a privacy JSON field query
+      where.NOT = { privacy: { path: ['allowSearch'], equals: false } }
     }
 
     // Calculate pagination

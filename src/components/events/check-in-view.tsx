@@ -26,6 +26,7 @@ interface CheckInResult {
 }
 
 export function CheckInView({ event }: CheckInViewProps) {
+  const [manualCode, setManualCode] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
   const [result, setResult] = useState<CheckInResult | null>(null)
   const [checkInHistory, setCheckInHistory] = useState<Array<{
@@ -40,10 +41,10 @@ export function CheckInView({ event }: CheckInViewProps) {
   useEffect(() => {
     const fetchCheckInHistory = async () => {
       try {
-        const response = await apiClient.get(`/api/registrations?eventId=${event.id}&status=ATTENDED`)
+        const response = await apiClient.get(`/api/registrations?eventId=${event.id}&status=ATTENDED&includeExpired=true&limit=100`)
         if (response.ok) {
           const data = await response.json()
-          const history = data.data.map((reg: any) => ({
+          const history = data.data.map((reg: { attendee: { name: string }; checkInTime: string | null }) => ({
             name: reg.attendee.name,
             time: reg.checkInTime ? new Date(reg.checkInTime).toLocaleTimeString() : 'Unknown',
             alreadyCheckedIn: true
@@ -75,6 +76,7 @@ export function CheckInView({ event }: CheckInViewProps) {
     try {
       const response = await apiClient.post('/api/registrations/check-in', {
         qrData: decodedText,
+        eventId: event.id,
       })
 
       const data = await response.json()
@@ -116,8 +118,28 @@ export function CheckInView({ event }: CheckInViewProps) {
     }
   }
 
+  const handleManualCheckIn = async (submitEvent: React.FormEvent) => {
+    submitEvent.preventDefault()
+    if (isProcessing || !manualCode.trim()) return
+    setIsProcessing(true)
+    try {
+      const response = await apiClient.post(`/api/events/${event.id}/checkin`, { code: manualCode.trim() })
+      const data = await response.json()
+      setResult({ success: response.ok, message: data.message || data.error, attendeeName: data.data?.attendee?.name })
+      if (response.ok) {
+        setManualCode('')
+        const history = await apiClient.get(`/api/registrations?eventId=${event.id}&status=ATTENDED&includeExpired=true&limit=100`)
+        if (history.ok) {
+          const payload = await history.json()
+          setCheckInHistory(payload.data.map((reg: { attendee: { name: string }; checkInTime: string | null }) => ({ name: reg.attendee.name, time: reg.checkInTime ? new Date(reg.checkInTime).toLocaleTimeString() : 'Unknown' })))
+        }
+      }
+    } catch { setResult({ success: false, message: 'Unable to check in. Please try again.' }) }
+    finally { setIsProcessing(false) }
+  }
+
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-US', { timeZone: 'UTC',
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -182,6 +204,11 @@ export function CheckInView({ event }: CheckInViewProps) {
               </div>
             )}
 
+            <form onSubmit={handleManualCheckIn} className="mb-6 space-y-2">
+              <label htmlFor="check-in-code" className="block font-medium">Enter ticket code</label>
+              <input id="check-in-code" value={manualCode} onChange={e => setManualCode(e.target.value)} maxLength={64} className="w-full rounded border p-2" placeholder="Code shown on the attendee ticket" />
+              <Button type="submit" disabled={isProcessing || !manualCode.trim()}>Check in with code</Button>
+            </form>
             <QRScanner
               onScanSuccess={handleScanSuccess}
               onScanError={(error) => console.error('Scanner error:', error)}
@@ -190,7 +217,7 @@ export function CheckInView({ event }: CheckInViewProps) {
             <div className="mt-4 p-4 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800">
                 <strong>Instructions:</strong><br />
-                1. Click "Start Scanner"<br />
+                1. Click &quot;Start Scanner&quot;<br />
                 2. Allow camera access<br />
                 3. Point camera at attendee&apos;s QR code<br />
                 4. Check-in happens automatically

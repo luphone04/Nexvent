@@ -87,7 +87,7 @@ export function AdminDashboard() {
   }, [session])
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-US', { timeZone: 'UTC',
       year: 'numeric',
       month: 'short',
       day: 'numeric'

@@ -68,16 +68,17 @@ export async function GET(request: NextRequest) {
       where.organizerId = query.organizerId
     }
     
-    if (query.status) {
-      where.status = query.status
+    const viewer = await getCurrentUser()
+    const canViewPrivate = viewer?.role === 'ADMIN' || (viewer && query.organizerId === viewer.id)
+    if (canViewPrivate) {
+      if (query.status) where.status = query.status
     } else {
-      // By default, only show published events to non-organizers
-      const user = await getCurrentUser()
-      if (!user || !["ORGANIZER", "ADMIN"].includes(user.role as string)) {
-        where.status = EventStatus.PUBLISHED
+      where.status = EventStatus.PUBLISHED
+      if (query.status && query.status !== EventStatus.PUBLISHED) {
+        return errorResponse("Only published events are publicly available", 403, "FORBIDDEN")
       }
     }
-    
+
     if (query.search) {
       where.OR = [
         {

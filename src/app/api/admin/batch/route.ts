@@ -136,22 +136,19 @@ async function handleBatchRegistrations(body: unknown, adminId: string) {
       // Promote waitlisted users to registered
       const waitlistedOnly = registrations.filter(r => r.status === RegistrationStatus.WAITLISTED)
       
-      results = await prisma.$transaction(
-        waitlistedOnly.map(reg => {
-          // Check if event has capacity
-          if (reg.event.capacity && reg.event._count.registrations >= reg.event.capacity) {
-            throw new Error(`Cannot promote ${reg.attendee.name} - event ${reg.event.title} is at capacity`)
-          }
-          
-          return prisma.registration.update({
-            where: { id: reg.id },
-            data: { 
-              status: RegistrationStatus.REGISTERED,
-              waitlistPosition: null
-            }
-          })
-        })
-      )
+      results = await prisma.$transaction(async tx => {
+        const updated = []
+        for (const eventId of [...new Set(waitlistedOnly.map(reg => reg.eventId))].sort()) {
+          await tx.$queryRaw`SELECT id FROM events WHERE id = ${eventId} FOR UPDATE`
+        }
+        for (const reg of waitlistedOnly) {
+          const event = await tx.event.findUniqueOrThrow({ where: { id: reg.eventId } })
+          const count = await tx.registration.count({ where: { eventId: reg.eventId, status: { in: ['REGISTERED', 'ATTENDED'] } } })
+          if (count >= event.capacity) throw new Error('Event is at capacity')
+          updated.push(await tx.registration.update({ where: { id: reg.id }, data: { status: 'REGISTERED', waitlistPosition: null } }))
+        }
+        return updated
+      })
       break
 
     default:

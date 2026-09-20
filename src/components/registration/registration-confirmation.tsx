@@ -19,6 +19,7 @@ interface Registration {
     eventTime: string | null
     location: string
     category: string
+    status: string
   }
   attendee: {
     name: string
@@ -108,6 +109,8 @@ export function RegistrationConfirmation({ registrationId }: RegistrationConfirm
     )
   }
 
+  const isCancelled = registration.status === 'CANCELLED' || registration.event.status === 'CANCELLED'
+  const hasTicket = !isCancelled && ['REGISTERED', 'ATTENDED'].includes(registration.status)
   const isWaitlisted = registration.status === 'WAITLISTED'
   const eventPassed = new Date(registration.event.eventDate) < new Date()
   const canCancel = !eventPassed && registration.status === 'REGISTERED'
@@ -122,11 +125,11 @@ export function RegistrationConfirmation({ registrationId }: RegistrationConfirm
         <h1 className={`text-2xl font-bold mb-2 ${
           isWaitlisted ? 'text-yellow-800' : 'text-green-800'
         }`}>
-          {isWaitlisted ? 'Added to Waitlist!' : 'Registration Confirmed!'}
+          {isCancelled ? 'Registration Cancelled' : isWaitlisted ? 'Added to Waitlist!' : registration.status === 'ATTENDED' ? 'Attendance Recorded' : 'Registration Confirmed!'}
         </h1>
         <p className={isWaitlisted ? 'text-yellow-700' : 'text-green-700'}>
-          {isWaitlisted
-            ? 'You have been added to the waitlist. We will notify you if a spot becomes available.'
+          {isCancelled ? 'This ticket is no longer valid for entry.' : isWaitlisted
+            ? 'You are on the waitlist. Check My Registrations to see if a spot becomes available.'
             : 'Your registration has been confirmed. See you at the event!'}
         </p>
       </div>
@@ -144,13 +147,13 @@ export function RegistrationConfirmation({ registrationId }: RegistrationConfirm
           <div>
             <span className="font-semibold">Date & Time:</span>
             <p>
-              {new Date(registration.event.eventDate).toLocaleDateString('en-US', {
+              {new Date(registration.event.eventDate).toLocaleDateString('en-US', { timeZone: 'UTC',
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
               })}
-              {registration.event.eventTime && ` at ${registration.event.eventTime}`}
+              {registration.event.eventTime && ` at ${registration.event.eventTime} UTC`}
             </p>
           </div>
 
@@ -169,7 +172,7 @@ export function RegistrationConfirmation({ registrationId }: RegistrationConfirm
           <div>
             <span className="font-semibold">Registered On:</span>
             <p>
-              {new Date(registration.registrationDate).toLocaleDateString('en-US', {
+              {new Date(registration.registrationDate).toLocaleDateString('en-US', { timeZone: 'UTC',
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
@@ -203,7 +206,7 @@ export function RegistrationConfirmation({ registrationId }: RegistrationConfirm
       </div>
 
       {/* QR Code Section - Only show if registered (not waitlisted) */}
-      {!isWaitlisted && (
+      {hasTicket && (
         <div className="bg-white rounded-lg border p-6 mb-6">
           <h2 className="text-xl font-bold mb-4 text-center">Your Event Ticket</h2>
 
@@ -234,14 +237,14 @@ export function RegistrationConfirmation({ registrationId }: RegistrationConfirm
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
         <h3 className="font-semibold mb-3">What&apos;s Next?</h3>
         <ul className="space-y-2 text-sm list-disc list-inside">
-          <li>A confirmation email has been sent to {registration.attendee.email}</li>
-          {!isWaitlisted && (
+          <li>Your registration is saved in My Registrations</li>
+          {hasTicket && (
             <>
               <li>Save your QR code for easy access at the event</li>
               <li>Add the event to your calendar</li>
             </>
           )}
-          <li>You will receive a reminder email before the event</li>
+          <li>Save your QR ticket for check-in; this demo does not send email</li>
         </ul>
       </div>
 

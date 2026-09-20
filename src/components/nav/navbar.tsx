@@ -54,6 +54,7 @@ export function Navbar() {
                   <Link href="/registrations">My Registrations</Link>
                 </Button>
 
+                <Button variant="outline" size="sm" asChild><Link href="/profile">Profile</Link></Button>
                 <Button variant="outline" size="sm" onClick={handleSignOut}>
                   Sign Out
                 </Button>
@@ -126,6 +127,7 @@ export function Navbar() {
                   My Registrations
                 </Link>
 
+                <Link href="/profile" className="block py-2 text-gray-900" onClick={closeMobileMenu}>Profile</Link>
                 <button
                   onClick={() => {
                     handleSignOut()

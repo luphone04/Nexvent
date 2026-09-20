@@ -6,8 +6,19 @@
 ---
 
 ### **Website Link**
-- https://fin-customer.southeastasia.cloudapp.azure.com/nexvent
+- [Live portfolio on Vercel](https://nexvent-rust.vercel.app)
 ---
+### Portfolio demo
+
+The frontend and API run together on Vercel Hobby, backed by a fresh Neon Free PostgreSQL database. Azure data was not recovered. Events and accounts are fictional; tickets are free, QR codes are available on screen, and no payments or emails are sent.
+
+- Attendee: `attendee@nexvent.example`
+- Organizer: `organizer@nexvent.example`
+- Shared demo password: `NexventDemo2026!`
+- Private administrator credentials are configured separately and are never seeded from a public default password.
+
+See [deployment and local setup](docs/vercel-deployment.md) for configuration, testing, and free-tier limitations.
+
 ### **Project Repo**
 - [**Nextvent Project** ](https://github.com/luphone04/Nexvent)
 
